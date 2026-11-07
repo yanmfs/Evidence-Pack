@@ -90,6 +90,10 @@ pnpm test
 - More cover templates.
 - Title page and abstract in the ABNT template.
 
+## Credits for the demo images
+
+The animation uses a made-up test kit (invented documents) with four public images: a Falcon 9 launch (SpaceX Photos, public domain), astronaut Eileen Collins (NASA Great Images), the surface of the Moon (scikit-image data) and the Hubble Extreme Deep Field (NASA / HubbleSite). None of them proves a real activity.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
