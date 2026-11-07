@@ -36,11 +36,12 @@ xattr -cr /Applications/EvidencePack.app
 
 ## Como usar
 
-1. Crie um projeto e preencha os dados da capa em "Dados do projeto".
+1. Crie um projeto e preencha os dados da capa em "Dados do projeto". Lá também ficam o modelo (Simples ou ABNT), a logo da capa, a lista de figuras e a página de declaração e assinatura.
 2. Crie as atividades na barra lateral.
-3. Arraste prints, fotos e PDFs para a atividade escolhida. A data vem do EXIF, do nome do arquivo ou da data do arquivo, e o selo do cartão mostra de onde veio.
+3. Arraste prints, fotos e PDFs para a atividade escolhida. A data vem do EXIF, do nome do arquivo ou da data do arquivo, e o selo do cartão mostra de onde veio. Se as atividades tiverem período, o arquivo com data confiável (EXIF ou nome) vai direto para a atividade do período.
 4. Ajuste legendas e datas nos cartões, arraste para reordenar ou use "Ordenar por data".
 5. Exporte o PDF (capa, sumário, uma seção por atividade, figuras numeradas) ou o ZIP com os originais e um índice em CSV.
+6. Para guardar ou levar o projeto para outro computador, use "Salvar cópia do projeto" (`.evpack`, com os originais) e "Abrir cópia de um projeto".
 
 ## O que ele faz e o que não faz
 
@@ -48,7 +49,7 @@ Faz: copia os arquivos para a pasta do projeto (os originais não são tocados),
 
 Não faz:
 
-- O modelo ABNT ainda não existe; o modelo Simples é o único. Quando o ABNT chegar, será "inspirado na ABNT" e você deve conferir as regras da sua instituição.
+- O modelo ABNT é "inspirado na ABNT" (margens da NBR 14724, fonte 12, espaçamento 1,5, número de página no canto superior direito). Confira as regras da sua instituição antes de entregar.
 - Não edita imagens nem lê o conteúdo delas.
 - No Windows, fotos HEIC precisam ser exportadas como JPG antes. PDFs protegidos por senha são recusados.
 - Links e formulários dentro dos PDFs anexados não são preservados.
@@ -69,10 +70,8 @@ pnpm test
 
 ## Roadmap
 
-- Modelo ABNT, lista de figuras e página de assinatura.
-- Sugestão automática de atividade pela data e pelo período.
-- Importar e exportar projeto como `.evpack`.
-- Logo da instituição na capa.
+- Mais modelos de capa.
+- Folha de rosto e resumo no modelo ABNT.
 
 ## Contribuir
 
