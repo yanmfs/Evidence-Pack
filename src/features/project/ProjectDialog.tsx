@@ -127,6 +127,11 @@ function Form({ project, onClose }: { project: Project; onClose: () => void }) {
         </div>
       </div>
       <Toggle
+        label={t("form.summaryTable")}
+        checked={Boolean(draft.summaryTable)}
+        onChange={(v) => set("summaryTable", v)}
+      />
+      <Toggle
         label={t("form.figureList")}
         checked={Boolean(draft.figureList)}
         onChange={(v) => set("figureList", v)}

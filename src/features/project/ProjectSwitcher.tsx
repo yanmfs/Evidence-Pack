@@ -47,18 +47,20 @@ export function ProjectSwitcher() {
 
   return (
     <div className="flex items-center gap-1">
-      <select
-        aria-label={t("projects.select")}
-        value={current?.id ?? ""}
-        onChange={(e) => switchProject(e.target.value)}
-        className="h-9 max-w-56 rounded-control border border-border bg-surface px-2 text-sm"
-      >
-        {projects.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.title || t("projects.untitled")}
-          </option>
-        ))}
-      </select>
+      {projects.length > 0 && (
+        <select
+          aria-label={t("projects.select")}
+          value={current?.id ?? ""}
+          onChange={(e) => switchProject(e.target.value)}
+          className="h-8 max-w-56 rounded-control border border-border-strong/70 bg-surface px-2 text-[13px]"
+        >
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.title || t("projects.untitled")}
+            </option>
+          ))}
+        </select>
+      )}
       <Tooltip label={t("projects.new")}>
         <Button variant="ghost" icon aria-label={t("projects.new")} onClick={() => open("new")}>
           <Plus className="size-4" aria-hidden />

@@ -16,7 +16,7 @@ for (const os of ["macos", "windows"]) {
       locale: "pt-BR",
     });
     await page.goto(`${base}/?os=${os}`);
-    await page.getByRole("button", { name: "Criar projeto" }).waitFor();
+    await page.getByRole("heading", { name: "Seu primeiro relatório" }).waitFor();
     await page.screenshot({ path: `${out}/${os}-${scheme}-empty.png` });
     await page.goto(`${base}/?os=${os}&demo=1`);
     await page.getByRole("heading", { name: "Atendimento ao usuário" }).waitFor();

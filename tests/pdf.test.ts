@@ -20,6 +20,12 @@ const options: BuildOptions = {
     signatureText: "Declaro que as informações são verdadeiras.",
     placeDate: "Local e data",
     signature: "Assinatura",
+    summaryTable: "Quadro-resumo",
+    colActivity: "Atividade",
+    colPeriod: "Período",
+    colHours: "Horas",
+    colEvidence: "Evidências",
+    total: "Total",
   },
 };
 
@@ -229,5 +235,61 @@ describe("cover logo", () => {
       options,
     );
     expect(await imagesOnCover(bytes)).toBe(1);
+  });
+});
+
+describe("summary table", () => {
+  it("lists each activity with period, hours and evidence count, and a total", async () => {
+    const { project, assets } = await sampleProject(1, { summaryTable: true });
+    project.activities = project.activities.map((a, i) => ({
+      ...a,
+      start: "2026-03-01",
+      end: "2026-03-31",
+      hours: [20, 12.5, 8][i],
+    }));
+    const pages = await readPages(await buildReport(project, assets, options));
+    // cover + contents + summary + 12 figure pages + 3 annex pages
+    expect(pages).toHaveLength(3 + 12 + 3);
+    const table = pages[2] ?? "";
+    expect(table).toContain("Quadro-resumo");
+    for (const title of [
+      "Atendimento ao usuário",
+      "Reuniões de equipe",
+      "Documentação e comprovantes",
+    ]) {
+      expect(table).toContain(title);
+    }
+    expect(table).toContain("12,5 h");
+    expect(table).toContain("40,5 h");
+    expect(table).toMatch(/Total.*13/);
+  });
+
+  it("moves the section numbers in the contents past the table", async () => {
+    const { project, assets } = await sampleProject(1, { summaryTable: true });
+    const pages = await readPages(await buildReport(project, assets, options));
+    const entry = /Atendimento ao usuário[\s.]*?(\d+)/.exec(pages[1] ?? "");
+    expect(Number(entry?.[1])).toBe(
+      pages.findIndex((p, i) => i > 2 && p.includes("Atendimento")) + 1,
+    );
+  });
+
+  it("is left out when asked not to or when there is nothing to list", async () => {
+    const { project, assets } = await sampleProject(1);
+    expect((await readPages(await buildReport(project, assets, options))).join(" ")).not.toContain(
+      "Quadro-resumo",
+    );
+  });
+});
+
+describe("image rotation", () => {
+  it("keeps the page count and fits a turned picture on the page", async () => {
+    const { project, assets } = await sampleProject(1);
+    const turned = {
+      ...project,
+      items: project.items.map((i) => (i.kind === "image" ? { ...i, rotation: 90 as const } : i)),
+    };
+    const base = await readPages(await buildReport(project, assets, options));
+    const pages = await readPages(await buildReport(turned, assets, options));
+    expect(pages).toHaveLength(base.length);
   });
 });

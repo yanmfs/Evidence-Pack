@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { FileText, GripVertical, Trash2 } from "lucide-react";
+import { FileText, GripVertical, RotateCw, Trash2 } from "lucide-react";
 import { Button } from "../../components/Button";
 import { Tooltip } from "../../components/Tooltip";
 import { formatDate } from "../../core/dates";
@@ -59,7 +59,8 @@ export function Card({
             alt={item.caption}
             loading="lazy"
             draggable={false}
-            className="size-full object-contain"
+            className="size-full object-contain transition-transform duration-150"
+            style={{ transform: `rotate(${item.rotation ?? 0}deg)` }}
           />
         ) : (
           <div className="flex flex-col items-center gap-1 text-muted">
@@ -76,6 +77,24 @@ export function Card({
             className="size-4 accent-[var(--accent)]"
           />
         </label>
+        {item.kind === "image" && (
+          <Tooltip label={t("card.rotate")}>
+            <button
+              type="button"
+              aria-label={t("card.rotate")}
+              onClick={() =>
+                mutate((p) =>
+                  updateItem(p, item.id, {
+                    rotation: (((item.rotation ?? 0) + 90) % 360) as 0 | 90 | 180 | 270,
+                  }),
+                )
+              }
+              className="absolute bottom-2 right-2 flex size-8 items-center justify-center rounded-control bg-surface/90 text-muted shadow hover:text-text"
+            >
+              <RotateCw className="size-4" aria-hidden />
+            </button>
+          </Tooltip>
+        )}
         <button
           type="button"
           aria-label={t("card.drag")}
