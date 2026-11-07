@@ -32,6 +32,16 @@ Transforme prints, fotos e comprovantes em um relatório em PDF organizado, com 
 
 Em estágio e projetos, comprovar atividades significa juntar dezenas de prints e fotos e montar o relatório na mão, com legenda, data e sumário. O EvidencePack faz essa montagem: você arrasta os arquivos, dá nome às atividades e exporta.
 
+## Instalar pelo Homebrew (macOS)
+
+```sh
+brew install --cask yanmfs/tap/evidencepack
+```
+
+O Homebrew baixa o mesmo instalador da release e coloca o EvidencePack em Aplicativos. É a versão universal, para Apple Silicon e Intel. Para atualizar, rode `brew update` e `brew upgrade --cask yanmfs/tap/evidencepack`.
+
+Se o macOS pedir confirmação na primeira abertura, veja a seção **Primeira abertura** abaixo. Mais detalhes em [instalação pelo Homebrew](docs/instalacao-homebrew.md).
+
 ## Download
 
 Baixe o instalador na página de [Releases](../../releases):

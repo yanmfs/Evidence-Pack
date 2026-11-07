@@ -32,6 +32,14 @@ Turn screenshots, photos and receipts into an organized PDF report with a cover,
 
 In internships and projects, proving your activities means gathering dozens of screenshots and photos and building a report by hand, with captions, dates and a table of contents. EvidencePack does the assembly: drop the files, name the activities and export.
 
+## Install with Homebrew (macOS)
+
+```sh
+brew install --cask yanmfs/tap/evidencepack
+```
+
+This installs the same universal macOS app provided in Releases, for Apple Silicon and Intel. Update with `brew update` followed by `brew upgrade --cask yanmfs/tap/evidencepack`. See **First launch** below if macOS asks you to confirm opening the app.
+
 ## Download
 
 Get the installer from the [Releases](../../releases) page:
