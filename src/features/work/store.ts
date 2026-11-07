@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { newProject, sortedActivities } from "../../core/project";
+import { newProject, parseProject, sortedActivities } from "../../core/project";
 import type { Project } from "../../core/types";
 import { platform } from "../../platform";
 import { useApp } from "../../store";
@@ -16,6 +16,8 @@ interface WorkState {
   loaded: boolean;
   load: () => Promise<void>;
   createProject: (name: string) => Promise<Project>;
+  // Returns false when the person cancels, throws when the file is not a project.
+  importProject: () => Promise<boolean>;
   deleteProject: (id: string) => Promise<void>;
   switchProject: (id: string) => void;
   mutate: (change: (p: Project) => Project) => void;
@@ -84,6 +86,26 @@ export const useWork = create<WorkState>((set, get) => {
       }));
       useApp.getState().update({ lastProjectId: project.id });
       return project;
+    },
+
+    importProject: async () => {
+      const id = crypto.randomUUID();
+      const json = await platform.importProject(id);
+      if (json === null) return false;
+      const project = parseProject(json, id, new Date().toISOString());
+      if (!project) {
+        await platform.deleteProject(id);
+        throw new Error("invalid project file");
+      }
+      await platform.writeProject(project);
+      set((s) => ({
+        projects: [project, ...s.projects],
+        currentId: id,
+        activityId: sortedActivities(project)[0]?.id ?? null,
+        selected: [],
+      }));
+      useApp.getState().update({ lastProjectId: id });
+      return true;
     },
 
     deleteProject: async (id) => {

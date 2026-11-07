@@ -1,3 +1,4 @@
+mod backup;
 mod error;
 mod export;
 mod import;
@@ -30,7 +31,9 @@ pub fn run() {
             prepare::prepare_images,
             prepare::cancel_prepare,
             export::save_file,
-            export::export_zip
+            export::export_zip,
+            backup::export_project,
+            backup::import_project
         ])
         .run(tauri::generate_context!())
         .expect("error while running EvidencePack");

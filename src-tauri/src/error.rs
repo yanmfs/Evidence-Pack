@@ -8,6 +8,8 @@ pub enum AppError {
     BadRequest,
     #[error("unsupported file type")]
     UnsupportedType,
+    #[error("not an EvidencePack project file")]
+    BadArchive,
     #[error("image error: {0}")]
     Image(String),
     #[error("zip error: {0}")]

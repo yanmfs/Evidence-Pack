@@ -20,6 +20,7 @@ import {
   removeItems,
   reorderItem,
   sortByDate,
+  parseProject,
   routeByDate,
   suggestActivity,
   updateActivity,
@@ -220,5 +221,38 @@ describe("evidenceFromImport", () => {
     expect(e.date).toBe("2026-03-14T10:22:31");
     expect(e.dateSource).toBe("filename");
     expect(e.source).toBe("Fonte: arquivo pessoal");
+  });
+});
+
+describe("parseProject", () => {
+  const now = "2026-05-01T00:00:00Z";
+
+  it("gives an imported project a new id and fills what is missing", () => {
+    const json = JSON.stringify({
+      id: "old",
+      title: "Relatório",
+      activities: [{ id: "a1", title: "A", order: 0 }],
+      items: [],
+      template: "abnt",
+    });
+    const p = parseProject(json, "new", now);
+    expect(p).toMatchObject({ id: "new", title: "Relatório", template: "abnt", quality: "mid" });
+    expect(p?.updatedAt).toBe(now);
+    expect(p?.activities).toHaveLength(1);
+  });
+
+  it("falls back to safe values for bad fields", () => {
+    const p = parseProject(
+      JSON.stringify({ activities: [], items: [], template: "x", imagesPerPage: 7, quality: 3 }),
+      "n",
+      now,
+    );
+    expect(p).toMatchObject({ template: "simple", imagesPerPage: 1, quality: "mid" });
+  });
+
+  it("rejects files that are not projects", () => {
+    expect(parseProject("not json", "n", now)).toBeNull();
+    expect(parseProject("[]", "n", now)).toBeNull();
+    expect(parseProject(JSON.stringify({ title: "x" }), "n", now)).toBeNull();
   });
 });

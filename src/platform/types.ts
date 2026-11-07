@@ -47,6 +47,11 @@ export interface Platform {
   ): Promise<PreparedRef[]>;
   cancelPrepare(): Promise<void>;
   readFile(projectId: string, dir: StoredDir, name: string): Promise<Uint8Array>;
+  // Backup of a whole project (originals included) as one .evpack file; desktop only.
+  canBackup: boolean;
+  exportProject(projectId: string, suggestedName: string): Promise<boolean>;
+  // Returns the project.json text of the unpacked copy, or null when the person cancels.
+  importProject(newId: string): Promise<string | null>;
   canZip: boolean;
   exportZip(
     projectId: string,
