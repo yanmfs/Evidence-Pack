@@ -1,6 +1,10 @@
-# EvidencePack
+<p align="center">
+  <img src="docs/banner.png" alt="EvidencePack" width="100%">
+</p>
 
-[English](README.en.md)
+<p align="center"><a href="README.en.md">English</a> · <a href="../../releases">Download</a> · <a href="CONTRIBUTING.md">Contribuir</a></p>
+
+<p align="center"><img alt="licença MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-2f4bd8?style=flat-square&labelColor=1b1f27"> <img alt="sistema Windows | macOS" src="https://img.shields.io/badge/sistema-Windows%20%7C%20macOS-2f4bd8?style=flat-square&labelColor=1b1f27"> <img alt="100% offline" src="https://img.shields.io/badge/100%25-offline-2f4bd8?style=flat-square&labelColor=1b1f27"> <img alt="feito com Tauri 2" src="https://img.shields.io/badge/feito%20com-Tauri%202-2f4bd8?style=flat-square&labelColor=1b1f27"></p>
 
 Transforme prints, fotos e comprovantes em um relatório em PDF organizado, com capa, sumário e figuras numeradas, e em um ZIP para prestação de contas.
 
@@ -9,6 +13,14 @@ Transforme prints, fotos e comprovantes em um relatório em PDF organizado, com 
 | Claro                                                                    | Escuro                                                                   |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | ![Janela do EvidencePack no tema claro](docs/shots/macos-light-main.png) | ![Janela do EvidencePack no tema escuro](docs/shots/macos-dark-main.png) |
+
+## Destaques
+
+- **Comece por um modelo:** relatório de estágio, prestação de contas ou portfólio, com atividades de exemplo.
+- **Datas sozinhas:** vêm do EXIF ou do nome do arquivo e, com o período da atividade, o arquivo vai para o lugar certo.
+- **Conferência antes de exportar:** legenda faltando, item sem data, arquivo esquecido na caixa de entrada.
+- **PDF pronto para entregar:** capa, sumário, quadro-resumo com horas, lista de figuras, figuras numeradas, PDFs anexados e página de assinatura, em modelo Simples ou inspirado na ABNT.
+- **Privado:** a localização das fotos não vai para o PDF; o ZIP guarda os originais intactos.
 
 ## Por que existe
 
