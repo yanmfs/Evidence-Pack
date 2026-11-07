@@ -136,12 +136,12 @@
   "csv.date": "Date",
   "csv.dateSource": "Date source",
   "csv.originalFile": "Original file",
-  "report.figureList": "List of figures",
+  "report.figureList": "List of figures and annexes",
   "report.signatureTitle": "Declaration",
   "report.signatureText": "I declare that the information and evidence presented in this report are true.",
   "report.placeDate": "Place and date",
   "report.signature": "Signature",
-  "form.figureList": "Include a list of figures",
+  "form.figureList": "Include a list of figures and annexes",
   "form.signature": "Include a declaration and signature page",
   "form.signatureText": "Declaration text",
   "import.routed_one": "{count} file went to the activity whose period contains its date.",
@@ -207,5 +207,8 @@
   "preflight.file-date_other": "{count} items use the file's date, which may not be when they happened.",
   "preflight.empty-activity_one": "{count} activity without files is left out.",
   "preflight.empty-activity_other": "{count} activities without files are left out.",
-  "preflight.clean": "All set to export."
+  "preflight.clean": "All set to export.",
+  "import.doc_unreadable": "{name} does not look like the kind of file its name says. Open it in its program and save it again.",
+  "form.notice": "Note at the top of the cover (optional). E.g. \"Made-up content, for testing only\".",
+  "card.docKind": "Document"
 }

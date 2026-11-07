@@ -100,6 +100,10 @@ export async function exportPdf(): Promise<void> {
         height: logoRef.height || project.logo.height || 1,
       };
     }
+    const documents = new Map<string, Uint8Array>();
+    for (const item of reported.filter((i) => i.kind === "doc")) {
+      documents.set(item.id, await platform.readFile(project.id, "files", item.storedName));
+    }
     const pdfs = new Map<string, Uint8Array>();
     for (const item of reported.filter((i) => i.kind === "pdf")) {
       pdfs.set(item.id, await platform.readFile(project.id, "files", item.storedName));
@@ -113,6 +117,7 @@ export async function exportPdf(): Promise<void> {
       },
       images: preparedImages,
       logo,
+      documents,
       pdfs,
     };
 

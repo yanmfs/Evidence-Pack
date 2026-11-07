@@ -139,7 +139,7 @@ export interface ImportedInfo {
   thumbName?: string | null;
   originalName: string;
   sha256: string;
-  kind: "image" | "pdf";
+  kind: "image" | "pdf" | "doc";
   width?: number | null;
   height?: number | null;
   pages?: number | null;

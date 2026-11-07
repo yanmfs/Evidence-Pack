@@ -49,19 +49,19 @@ xattr -cr /Applications/EvidencePack.app
 
 1. Create a project and fill in the cover details under "Project details". That is also where the template (Simple or ABNT), the cover logo, the list of figures and the declaration and signature page live.
 2. Create the activities in the sidebar.
-3. Drop screenshots, photos and PDFs on the chosen activity. The date comes from EXIF, the file name or the file date, and the card badge shows where it came from. If the activities have periods, a file with a reliable date (EXIF or name) goes straight to the activity whose period contains it.
+3. Drop screenshots, photos, PDFs and also text files (`.txt`), spreadsheets (`.csv`) and Word documents (`.docx`) on the chosen activity. The date comes from EXIF, the file name or the file date, and the card badge shows where it came from. If the activities have periods, a file with a reliable date (EXIF or name) goes straight to the activity whose period contains it.
 4. Tweak captions and dates on the cards, drag to reorder or use "Sort by date".
 5. Export the PDF (cover, contents, one section per activity, numbered figures) or the ZIP with the originals and a CSV index.
 6. To keep a project or move it to another computer, use "Save a project copy" (`.evpack`, originals included) and "Open a project copy".
 
 ## What it does and does not do
 
-It copies files into the project folder (originals are never touched), detects duplicates by SHA-256, reads photo dates and orientation, makes thumbnails, re-encodes images for the PDF with no metadata at all (the location of your photos does not go into the PDF), attaches whole PDFs with an identifying label and saves the project automatically. The ZIP keeps the originals untouched in per-activity folders with an `indice.csv` (UTF-8 with BOM, `;` separated) that opens straight in Brazilian Excel.
+It copies files into the project folder (originals are never touched), detects duplicates by SHA-256, reads photo dates and orientation, makes thumbnails, re-encodes images for the PDF with no metadata at all (the location of your photos does not go into the PDF), attaches whole PDFs with an identifying label, shows `.txt`, `.csv` and `.docx` files as annex pages (headings, lists and tables; long tables repeat the header on every page) and saves the project automatically. The ZIP keeps the originals untouched in per-activity folders with an `indice.csv` (UTF-8 with BOM, `;` separated) that opens straight in Brazilian Excel.
 
 It does not:
 
 - Guarantee ABNT compliance. The ABNT template is "inspired by ABNT" (NBR 14724 margins, 12 pt text, 1.5 spacing, page number at the top right); check your institution's rules before handing in.
-- Edit images or read their content.
+- Edit images or read their content. For `.docx` it shows only the text, lists and tables: pictures, headers, footnotes and Word formatting do not go into the PDF (the original file stays untouched in the ZIP).
 - Open HEIC photos on Windows; export them as JPG first. Password-protected PDFs are refused.
 - Keep links and forms inside attached PDFs.
 

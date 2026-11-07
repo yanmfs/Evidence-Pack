@@ -16,7 +16,8 @@ export interface Evidence {
   id: string;
   // null puts the item in the inbox, outside the report.
   activityId: string | null;
-  kind: "image" | "pdf";
+  // "doc" is a text, spreadsheet (CSV) or Word file, shown in the report as text pages.
+  kind: "image" | "pdf" | "doc";
   storedName: string;
   thumbName?: string;
   originalName: string;
@@ -49,6 +50,8 @@ export interface Project {
   // Both are optional so projects saved before they existed keep loading.
   logo?: { storedName: string; thumbName?: string; width: number; height: number };
   figureList?: boolean;
+  // A line or two on the cover, such as a note that the content is made up for a test.
+  notice?: string;
   summaryTable?: boolean;
   signature?: { enabled: boolean; text: string };
   createdAt: string;

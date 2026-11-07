@@ -49,19 +49,19 @@ xattr -cr /Applications/EvidencePack.app
 
 1. Crie um projeto e preencha os dados da capa em "Dados do projeto". Lá também ficam o modelo (Simples ou ABNT), a logo da capa, a lista de figuras e a página de declaração e assinatura.
 2. Crie as atividades na barra lateral.
-3. Arraste prints, fotos e PDFs para a atividade escolhida. A data vem do EXIF, do nome do arquivo ou da data do arquivo, e o selo do cartão mostra de onde veio. Se as atividades tiverem período, o arquivo com data confiável (EXIF ou nome) vai direto para a atividade do período.
+3. Arraste prints, fotos, PDFs e também arquivos de texto (`.txt`), planilhas (`.csv`) e documentos do Word (`.docx`) para a atividade escolhida. A data vem do EXIF, do nome do arquivo ou da data do arquivo, e o selo do cartão mostra de onde veio. Se as atividades tiverem período, o arquivo com data confiável (EXIF ou nome) vai direto para a atividade do período.
 4. Ajuste legendas e datas nos cartões, arraste para reordenar ou use "Ordenar por data".
 5. Exporte o PDF (capa, sumário, uma seção por atividade, figuras numeradas) ou o ZIP com os originais e um índice em CSV.
 6. Para guardar ou levar o projeto para outro computador, use "Salvar cópia do projeto" (`.evpack`, com os originais) e "Abrir cópia de um projeto".
 
 ## O que ele faz e o que não faz
 
-Faz: copia os arquivos para a pasta do projeto (os originais não são tocados), detecta duplicatas por SHA-256, lê a data e a orientação das fotos, gera miniaturas, recodifica as imagens para o PDF sem nenhum metadado (a localização das suas fotos não vai para o PDF), anexa PDFs inteiros com uma etiqueta de identificação e salva o projeto automaticamente. O ZIP guarda os originais intactos em pastas por atividade, com um `indice.csv` (UTF-8 com BOM, separado por `;`) que abre direto no Excel brasileiro.
+Faz: copia os arquivos para a pasta do projeto (os originais não são tocados), detecta duplicatas por SHA-256, lê a data e a orientação das fotos, gera miniaturas, recodifica as imagens para o PDF sem nenhum metadado (a localização das suas fotos não vai para o PDF), anexa PDFs inteiros com uma etiqueta de identificação, mostra `.txt`, `.csv` e `.docx` como páginas de anexo (títulos, listas e tabelas; tabelas longas repetem o cabeçalho a cada página) e salva o projeto automaticamente. O ZIP guarda os originais intactos em pastas por atividade, com um `indice.csv` (UTF-8 com BOM, separado por `;`) que abre direto no Excel brasileiro.
 
 Não faz:
 
 - O modelo ABNT é "inspirado na ABNT" (margens da NBR 14724, fonte 12, espaçamento 1,5, número de página no canto superior direito). Confira as regras da sua instituição antes de entregar.
-- Não edita imagens nem lê o conteúdo delas.
+- Não edita imagens nem lê o conteúdo delas. Em `.docx` mostra só o texto, as listas e as tabelas: figuras, cabeçalhos, notas de rodapé e a formatação do Word não vão para o PDF (o arquivo original segue intacto no ZIP).
 - No Windows, fotos HEIC precisam ser exportadas como JPG antes. PDFs protegidos por senha são recusados.
 - Links e formulários dentro dos PDFs anexados não são preservados.
 

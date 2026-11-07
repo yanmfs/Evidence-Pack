@@ -8,6 +8,7 @@ import {
   type PDFPage,
 } from "pdf-lib";
 import { formatDate } from "../dates";
+import { parseDocument, type DocBlock } from "../docs";
 import { itemsOf, numberEvidence, sortedActivities } from "../project";
 import type { Evidence, Project } from "../types";
 import { wrapText } from "./wrap";
@@ -22,6 +23,8 @@ export interface PreparedImage {
 export interface PdfAssets {
   fonts: { regular: Uint8Array; bold: Uint8Array };
   images: Map<string, PreparedImage>;
+  // Bytes of the text, spreadsheet and Word files in the report, by evidence id.
+  documents?: Map<string, Uint8Array>;
   // Printed at the top of the cover.
   logo?: PreparedImage;
   pdfs: Map<string, Uint8Array>;
@@ -80,6 +83,8 @@ type Op =
 
 interface PlannedPage {
   ops: Op[];
+  // The last page of an item: progress moves on when it is drawn.
+  finishes?: boolean;
 }
 
 interface Fonts {
@@ -231,6 +236,113 @@ export async function buildReport(
     }
   }
 
+  // A note across the top of the cover, e.g. that the content is made up for a test.
+  if (project.notice?.trim()) {
+    wrap(project.notice.trim(), 9, contentW)
+      .slice(0, 3)
+      .forEach((line, i) =>
+        cover.ops.push({
+          t: "text",
+          x: abnt ? L.margin.left + (contentW - width(line, 9)) / 2 : L.margin.left,
+          y: A4.h - 30 - i * 12,
+          size: 9,
+          color: "muted",
+          text: line,
+        }),
+      );
+  }
+
+  // ---- documents (text, spreadsheet, Word) laid out as report pages ------------------------
+  const DOC_PAGE_LIMIT = 40;
+  const docPages = (blocks: DocBlock[], startY = topY): Op[][] => {
+    const pages: Op[][] = [[]];
+    let y = startY;
+    const here = () => pages[pages.length - 1]!;
+    const fresh = () => {
+      pages.push([]);
+      y = topY;
+    };
+    const room = (h: number) => {
+      if (y - h < bottomY && here().length > 0 && pages.length < DOC_PAGE_LIMIT) fresh();
+    };
+    const STYLE = {
+      title: { size: 18, bold: true, color: "accent" as const, before: 0, after: 6 },
+      subtitle: { size: 11, bold: false, color: "muted" as const, before: 0, after: 8 },
+      h1: { size: 14, bold: true, color: "accent" as const, before: 12, after: 4 },
+      h2: { size: 12, bold: true, color: undefined, before: 8, after: 3 },
+      h3: { size: 11, bold: true, color: undefined, before: 6, after: 2 },
+      p: { size: 10.5, bold: false, color: undefined, before: 0, after: 4 },
+      bullet: { size: 10.5, bold: false, color: undefined, before: 0, after: 2 },
+    } as const;
+    for (const block of blocks) {
+      if (pages.length >= DOC_PAGE_LIMIT && y - 14 < bottomY) break;
+      if (block.t !== "table") {
+        const st = STYLE[block.t];
+        const indent = block.t === "bullet" ? 14 : 0;
+        const lines = wrap(block.text, st.size, contentW - indent, st.bold);
+        y -= here().length > 0 ? st.before : 0;
+        lines.forEach((line, i) => {
+          const lead = st.size * 1.4;
+          room(lead);
+          y -= lead;
+          if (block.t === "bullet" && i === 0) {
+            here().push({ t: "text", x: L.margin.left + 3, y, size: st.size, text: "•" });
+          }
+          here().push({
+            t: "text",
+            x: L.margin.left + indent,
+            y,
+            size: st.size,
+            bold: st.bold,
+            color: st.color,
+            text: line,
+          });
+        });
+        y -= st.after;
+        continue;
+      }
+      // Tables: columns share the width in proportion to their longest text, within limits.
+      const columns = Math.max(...block.rows.map((r) => r.length));
+      const weights = Array.from({ length: columns }, (_, c) =>
+        Math.min(40, Math.max(6, ...block.rows.map((r) => (r[c] ?? "").length))),
+      );
+      const total = weights.reduce((a, b) => a + b, 0);
+      const widths = weights.map((w) => (contentW * w) / total);
+      const size = columns > 5 ? 8 : 9;
+      const rowLines = (row: string[], bold: boolean) =>
+        widths.map((w, c) => wrap(row[c] ?? "", size, w - 8, bold));
+      const drawRow = (row: string[], bold: boolean, isHeader: boolean) => {
+        const cells = rowLines(row, bold);
+        const lineCount = Math.max(1, ...cells.map((c) => c.length));
+        const height = lineCount * size * 1.3 + 7;
+        if (y - height < bottomY && here().length > 0 && pages.length < DOC_PAGE_LIMIT) {
+          fresh();
+          if (!isHeader) drawRow(block.rows[0] ?? [], true, true);
+        }
+        let x = L.margin.left;
+        cells.forEach((lines, c) => {
+          lines.forEach((line, i) => {
+            here().push({
+              t: "text",
+              x: x + 4,
+              y: y - 4 - size - i * size * 1.3 + 2,
+              size,
+              bold,
+              text: line,
+            });
+          });
+          x += widths[c] ?? 0;
+        });
+        y -= height;
+        here().push({ t: "hline", x: L.margin.left, y, w: contentW, light: !isHeader });
+      };
+      room(40);
+      block.rows.forEach((row, i) => drawRow(row, i === 0, i === 0));
+      y -= 8;
+    }
+    return pages;
+  };
+
   // ---- content -----------------------------------------------------------
   const pageHeight = topY - bottomY;
   const perPage = project.imagesPerPage;
@@ -239,6 +351,7 @@ export async function buildReport(
   const captionSize = abnt ? 10 : 10.5;
   const sourceSize = abnt ? 10 : 8.5;
   const figurePage = new Map<string, number>();
+  const annexPage = new Map<string, number>();
   const content: PlannedPage[] = [];
   const firstPageOf: number[] = [];
 
@@ -255,6 +368,8 @@ export async function buildReport(
   for (const { activity, items } of activities) {
     const page = newPage();
     firstPageOf.push(content.length - 1);
+    // Nothing but the heading is on this page yet; a document can start right under it.
+    let sectionFresh = true;
 
     const titleSize = abnt ? 14 : 18;
     for (const l of wrap(upper(activity.title), titleSize, contentW, true)) {
@@ -302,8 +417,31 @@ export async function buildReport(
         const pages = item.pages ?? 1;
         for (let i = 0; i < pages; i++) {
           const label = `${options.labels.annex} ${number?.n ?? ""} – ${item.caption} · ${options.labels.page} ${i + 1}/${pages}`;
-          newPage().ops.push({ t: "embed", id: item.id, pageIndex: i, label });
+          const annex = newPage();
+          if (i === 0) annexPage.set(item.id, content.length - 1);
+          annex.ops.push({ t: "embed", id: item.id, pageIndex: i, label });
         }
+        sectionFresh = false;
+        needsNewPage = true;
+        continue;
+      }
+
+      if (item.kind === "doc") {
+        const bytes = assets.documents?.get(item.id);
+        if (!bytes) throw new Error(`Missing document for ${item.id}`);
+        const reuse = sectionFresh && cursor - 140 >= bottomY;
+        const pages = docPages(parseDocument(item.originalName, bytes), reuse ? cursor : topY);
+        pages.forEach((ops, i) => {
+          const label = `${options.labels.annex} ${number?.n ?? ""} – ${item.caption || item.originalName} · ${options.labels.page} ${i + 1}/${pages.length}`;
+          const target = i === 0 && reuse ? page : newPage();
+          if (i === 0) annexPage.set(item.id, content.indexOf(target));
+          target.ops.push(
+            { t: "text", x: 28, y: A4.h - 36, size: 8, color: "muted", text: label },
+            ...ops,
+          );
+          if (i === pages.length - 1) target.finishes = true;
+        });
+        sectionFresh = false;
         needsNewPage = true;
         continue;
       }
@@ -332,6 +470,7 @@ export async function buildReport(
       const h = shownH * scale;
       const page2 = content[content.length - 1]!;
       figuresOnPage++;
+      sectionFresh = false;
       figurePage.set(item.id, content.length - 1);
 
       for (const l of caption) {
@@ -368,11 +507,12 @@ export async function buildReport(
   const ENTRY_H = abnt ? 26 : 24;
   const listTitleH = 56;
   const perListPage = Math.max(1, Math.floor((pageHeight - listTitleH) / ENTRY_H));
-  const figures = activities.flatMap((g) => g.items).filter((i) => i.kind === "image");
-  const withFigureList = Boolean(project.figureList) && figures.length > 0;
+  // Figures and annexes, in report order, with the page each one starts on.
+  const listed = activities.flatMap((g) => g.items);
+  const withFigureList = Boolean(project.figureList) && listed.length > 0;
   const pagesFor = (count: number) => Math.max(1, Math.ceil(count / perListPage));
   const tocPages = pagesFor(activities.length);
-  const figurePages = withFigureList ? pagesFor(figures.length) : 0;
+  const figurePages = withFigureList ? pagesFor(listed.length) : 0;
 
   const withSummary = Boolean(project.summaryTable) && activities.length > 0;
   const SUMMARY_ROW = 24;
@@ -434,9 +574,14 @@ export async function buildReport(
   const figureList = withFigureList
     ? buildList(
         options.labels.figureList,
-        figures.map((item) => ({
-          text: `${options.labels.figure} ${numbering.get(item.id)?.n ?? ""}${item.caption ? ` – ${item.caption}` : ""}`,
-          page: String(numberOf(firstContentIndex + (figurePage.get(item.id) ?? 0))),
+        listed.map((item) => ({
+          text: `${item.kind === "image" ? options.labels.figure : options.labels.annex} ${numbering.get(item.id)?.n ?? ""}${item.caption ? ` – ${item.caption}` : ""}`,
+          page: String(
+            numberOf(
+              firstContentIndex +
+                ((item.kind === "image" ? figurePage : annexPage).get(item.id) ?? 0),
+            ),
+          ),
         })),
       )
     : [];
@@ -707,6 +852,7 @@ export async function buildReport(
         }
       }
     }
+    if (planned.finishes) options.onProgress?.(++done, total);
     if (index > 0 && !abnt) {
       const label = String(numberOf(index));
       page.drawText(label, {

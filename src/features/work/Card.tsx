@@ -65,7 +65,11 @@ export function Card({
         ) : (
           <div className="flex flex-col items-center gap-1 text-muted">
             <FileText className="size-10" aria-hidden />
-            <span className="text-xs">{t("card.pdfPages", { count: item.pages ?? 1 })}</span>
+            <span className="text-xs">
+              {item.kind === "doc"
+                ? (item.originalName.split(".").pop() ?? "").toUpperCase()
+                : t("card.pdfPages", { count: item.pages ?? 1 })}
+            </span>
           </div>
         )}
         <label className="absolute left-2 top-2 flex size-8 cursor-pointer items-center justify-center rounded-control bg-surface/90 shadow">
@@ -106,7 +110,7 @@ export function Card({
         </button>
         {figure !== undefined && (
           <span className="absolute bottom-2 left-2 rounded-full bg-surface/90 px-2 py-0.5 text-xs font-medium shadow">
-            {item.kind === "pdf" ? t("report.annex") : t("report.figure")} {figure}
+            {item.kind === "image" ? t("report.figure") : t("report.annex")} {figure}
           </span>
         )}
       </div>

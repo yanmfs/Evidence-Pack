@@ -126,6 +126,12 @@ function Form({ project, onClose }: { project: Project; onClose: () => void }) {
           )}
         </div>
       </div>
+      <Field
+        multiline
+        label={t("form.notice")}
+        value={draft.notice ?? ""}
+        onChange={(v) => set("notice", v || undefined)}
+      />
       <Toggle
         label={t("form.summaryTable")}
         checked={Boolean(draft.summaryTable)}

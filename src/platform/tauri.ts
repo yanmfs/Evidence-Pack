@@ -9,7 +9,20 @@ import { detectOs } from "../core/os";
 import type { Project } from "../core/types";
 import type { ImportOutcome, ImportSource, Platform, PreparedRef } from "./types";
 
-const EXTENSIONS = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "heic", "heif", "pdf"];
+const EXTENSIONS = [
+  "png",
+  "jpg",
+  "jpeg",
+  "webp",
+  "gif",
+  "bmp",
+  "heic",
+  "heif",
+  "pdf",
+  "txt",
+  "csv",
+  "docx",
+];
 
 let store: Promise<Store> | undefined;
 const settingsStore = () => (store ??= load("settings.json", { autoSave: false, defaults: {} }));

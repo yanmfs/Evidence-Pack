@@ -1,4 +1,5 @@
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { strToU8, zipSync } from "fflate";
 import { PDFDict, PDFDocument, PDFName } from "pdf-lib";
 import { describe, expect, it } from "vitest";
 import { buildReport, type BuildOptions } from "../src/core/pdf/build";
@@ -291,5 +292,146 @@ describe("image rotation", () => {
     const base = await readPages(await buildReport(project, assets, options));
     const pages = await readPages(await buildReport(turned, assets, options));
     expect(pages).toHaveLength(base.length);
+  });
+});
+
+describe("text, spreadsheet and Word files", () => {
+  const docx = (body: string) =>
+    zipSync({
+      "word/document.xml": strToU8(`<w:document xmlns:w="x"><w:body>${body}</w:body></w:document>`),
+    });
+  const para = (text: string, style?: string) =>
+    `<w:p>${style ? `<w:pPr><w:pStyle w:val="${style}"/></w:pPr>` : ""}<w:r><w:t>${text}</w:t></w:r></w:p>`;
+  const csv = [
+    "codigo;nome;presença",
+    ...Array.from(
+      { length: 70 },
+      (_, i) => `PART-${String(i + 1).padStart(3, "0")};Participante ${i + 1};SIM`,
+    ),
+  ].join("\r\n");
+  const notes = Array.from(
+    { length: 12 },
+    (_, i) => `09:${String(i).padStart(2, "0")} — Passo ${i + 1} da oficina`,
+  ).join("\n");
+  const word = docx(
+    para("Plano de teste", "Title") +
+      para("1. Identificação", "Heading1") +
+      para("Atividade fictícia com acentuação: ação, coração, pé.") +
+      "<w:tbl><w:tr><w:tc>" +
+      para("Horário") +
+      "</w:tc><w:tc>" +
+      para("Etapa") +
+      "</w:tc></w:tr><w:tr><w:tc>" +
+      para("09:00") +
+      "</w:tc><w:tc>" +
+      para("Abertura") +
+      "</w:tc></w:tr></w:tbl>",
+  );
+
+  async function withDocuments() {
+    const { project, assets } = await sampleProject(1);
+    const doc = (id: string, name: string, caption: string) => ({
+      ...project.items[0]!,
+      id,
+      kind: "doc" as const,
+      storedName: name,
+      originalName: name,
+      sha256: `sha-${id}`,
+      caption,
+      activityId: "a3",
+      order: 99,
+    });
+    const items = [
+      ...project.items,
+      doc("d1", "lista.csv", "Lista de presença"),
+      doc("d2", "plano.docx", "Plano"),
+      doc("d3", "notas.txt", "Notas"),
+    ];
+    const documents = new Map([
+      ["d1", strToU8(csv)],
+      ["d2", word],
+      ["d3", strToU8(notes)],
+    ]);
+    return { project: { ...project, items }, assets: { ...assets, documents } };
+  }
+
+  it("lays each file out as annex pages that name the file and keep every row", async () => {
+    const { project, assets } = await withDocuments();
+    const base = await sampleProject(1);
+    const progress: number[] = [];
+    const pages = await readPages(
+      await buildReport(project, assets, { ...options, onProgress: (d) => progress.push(d) }),
+    );
+    const text = pages.join(" ");
+    expect(
+      (await readPages(await buildReport(base.project, base.assets, options))).length,
+    ).toBeLessThan(pages.length);
+    expect(text).toContain("Lista de presença · pág. 1/");
+    expect(text).toContain("PART-001");
+    expect(text).toContain("PART-070");
+    expect(text).toContain("presença");
+    expect(text).toContain("Plano de teste");
+    expect(text).toContain("ação, coração, pé");
+    expect(text).toContain("Passo 12 da oficina");
+    // Every table page starts again with the header row.
+    const csvPages = pages.filter((p) => p.includes("Lista de presença"));
+    expect(csvPages.length).toBeGreaterThan(1);
+    expect(csvPages.every((p) => p.includes("codigo"))).toBe(true);
+    expect(progress.at(-1)).toBe(16);
+  });
+
+  it("numbers them as annexes after the existing one", async () => {
+    const { project, assets } = await withDocuments();
+    const text = (await readPages(await buildReport(project, assets, options))).join(" ");
+    expect(text).toContain("Anexo 2 – Lista de presença");
+    expect(text).toContain("Anexo 3 – Plano");
+    expect(text).toContain("Anexo 4 – Notas");
+  });
+
+  it("says which file failed when it cannot be read", async () => {
+    const { project, assets } = await withDocuments();
+    assets.documents.set("d2", strToU8("isto não é um docx"));
+    await expect(buildReport(project, assets, options)).rejects.toThrow();
+    assets.documents.delete("d1");
+    await expect(buildReport(project, assets, options)).rejects.toThrow("Missing document for d1");
+  });
+
+  it("starts a document under the section heading instead of on a page of its own", async () => {
+    const { project, assets } = await withDocuments();
+    const first = project.activities[0]!;
+    const moved = {
+      ...project,
+      items: project.items.map((i) =>
+        i.id === "d3" ? { ...i, activityId: first.id, order: -1 } : i,
+      ),
+    };
+    const pages = await readPages(await buildReport(moved, assets, options));
+    const page = pages.find(
+      (p) => p.includes("Atendimento ao usuário") && p.includes("Passo 1 da oficina"),
+    );
+    expect(page).toBeDefined();
+  });
+
+  it("lists annexes next to the figures, each with the page where it starts", async () => {
+    const { project, assets } = await withDocuments();
+    const pages = await readPages(
+      await buildReport({ ...project, figureList: true }, assets, options),
+    );
+    const list = pages[2] ?? "";
+    expect(list).toContain("Lista de figuras");
+    expect(list).toContain("Figura 12");
+    expect(list).toContain("Anexo 2 – Lista de presença");
+    const entry = /Anexo 2 – Lista de presença[\s.]*?(\d+)/.exec(list);
+    const real =
+      pages.findIndex((p, i) => i > 2 && p.includes("Anexo 2 – Lista de presença · pág.")) + 1;
+    expect(Number(entry?.[1])).toBe(real);
+  });
+
+  it("prints the cover note when there is one", async () => {
+    const { project, assets } = await sampleProject(1, {
+      notice: "Conteúdo fictício, só para teste",
+    });
+    const pages = await readPages(await buildReport(project, assets, options));
+    expect(pages[0]).toContain("Conteúdo fictício, só para teste");
   });
 });
