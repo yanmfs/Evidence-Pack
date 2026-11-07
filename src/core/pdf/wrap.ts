@@ -12,7 +12,6 @@ export function wrapText(text: string, measure: Measure, maxWidth: number): stri
         continue;
       }
       if (line !== "") lines.push(line);
-      line = "";
       let rest = word;
       while (measure(rest) > maxWidth && rest.length > 1) {
         let cut = rest.length - 1;
