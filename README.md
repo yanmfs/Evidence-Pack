@@ -14,6 +14,12 @@ Transforme prints, fotos e comprovantes em um relatório em PDF organizado, com 
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | ![Janela do EvidencePack no tema claro](docs/shots/macos-light-main.png) | ![Janela do EvidencePack no tema escuro](docs/shots/macos-dark-main.png) |
 
+## Como funciona
+
+<p align="center">
+  <img src="docs/how-it-works.svg" alt="Arquivos soltos viram um relatório organizado: figuras numeradas, legendas, sumário e um ZIP com os originais." width="100%">
+</p>
+
 ## Destaques
 
 - **Comece por um modelo:** relatório de estágio, prestação de contas ou portfólio, com atividades de exemplo.
