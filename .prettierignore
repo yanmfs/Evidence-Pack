@@ -1,0 +1,4 @@
+dist
+dist-web
+src-tauri
+pnpm-lock.yaml
