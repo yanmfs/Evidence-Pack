@@ -75,9 +75,10 @@ const SIMPLE: Layout = {
 
 function safeText(text: string, supported: Set<number>): string {
   let out = "";
-  for (const ch of text.replace(/[\u0000-\u0008\u000b-\u001f]/g, " ")) {
+  for (const ch of text) {
     const cp = ch.codePointAt(0) ?? 63;
-    out += cp === 10 || supported.has(cp) ? ch : "?";
+    if (cp < 32 && cp !== 10) out += " ";
+    else out += cp === 10 || supported.has(cp) ? ch : "?";
   }
   return out;
 }
