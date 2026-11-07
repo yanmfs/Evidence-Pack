@@ -1,0 +1,128 @@
+import { create } from "zustand";
+import { newProject, sortedActivities } from "../../core/project";
+import type { Project } from "../../core/types";
+import { platform } from "../../platform";
+import { useApp } from "../../store";
+
+type SaveState = "saved" | "saving";
+
+interface WorkState {
+  projects: Project[];
+  currentId: string | null;
+  // null is the inbox.
+  activityId: string | null;
+  selected: string[];
+  saveState: SaveState;
+  loaded: boolean;
+  load: () => Promise<void>;
+  createProject: (name: string) => Promise<Project>;
+  deleteProject: (id: string) => Promise<void>;
+  switchProject: (id: string) => void;
+  mutate: (change: (p: Project) => Project) => void;
+  selectActivity: (id: string | null) => void;
+  toggleSelected: (id: string) => void;
+  clearSelection: () => void;
+}
+
+const SAVE_DELAY_MS = 500;
+const timers = new Map<string, ReturnType<typeof setTimeout>>();
+
+export const useWork = create<WorkState>((set, get) => {
+  const scheduleSave = (id: string) => {
+    clearTimeout(timers.get(id));
+    set({ saveState: "saving" });
+    timers.set(
+      id,
+      setTimeout(() => {
+        timers.delete(id);
+        const project = get().projects.find((p) => p.id === id);
+        const done = () => timers.size === 0 && set({ saveState: "saved" });
+        if (!project) return done();
+        void platform.writeProject(project).finally(done);
+      }, SAVE_DELAY_MS),
+    );
+  };
+
+  const firstActivity = (p: Project | undefined) =>
+    sortedActivities(p ?? newProject("", ""))[0]?.id ?? null;
+
+  return {
+    projects: [],
+    currentId: null,
+    activityId: null,
+    selected: [],
+    saveState: "saved",
+    loaded: false,
+
+    load: async () => {
+      await platform.init();
+      if (new URLSearchParams(window.location.search).has("demo")) {
+        await (await import("./demo")).seedDemo();
+      }
+      const projects = (await platform.listProjects().catch(() => [])).sort((a, b) =>
+        b.updatedAt.localeCompare(a.updatedAt),
+      );
+      const last = useApp.getState().settings.lastProjectId;
+      const current = projects.find((p) => p.id === last) ?? projects[0];
+      set({
+        projects,
+        currentId: current?.id ?? null,
+        activityId: firstActivity(current),
+        loaded: true,
+      });
+    },
+
+    createProject: async (name) => {
+      const now = new Date().toISOString();
+      const project = newProject(crypto.randomUUID(), now, { title: name });
+      await platform.writeProject(project);
+      set((s) => ({
+        projects: [project, ...s.projects],
+        currentId: project.id,
+        activityId: null,
+        selected: [],
+      }));
+      useApp.getState().update({ lastProjectId: project.id });
+      return project;
+    },
+
+    deleteProject: async (id) => {
+      clearTimeout(timers.get(id));
+      timers.delete(id);
+      await platform.deleteProject(id);
+      const projects = get().projects.filter((p) => p.id !== id);
+      const next =
+        get().currentId === id ? projects[0] : projects.find((p) => p.id === get().currentId);
+      set({ projects, currentId: next?.id ?? null, activityId: firstActivity(next), selected: [] });
+      useApp.getState().update({ lastProjectId: next?.id ?? null });
+    },
+
+    switchProject: (id) => {
+      const project = get().projects.find((p) => p.id === id);
+      if (!project) return;
+      set({ currentId: id, activityId: firstActivity(project), selected: [] });
+      useApp.getState().update({ lastProjectId: id });
+    },
+
+    mutate: (change) => {
+      const { currentId, projects } = get();
+      const current = projects.find((p) => p.id === currentId);
+      if (!current) return;
+      const next = { ...change(current), updatedAt: new Date().toISOString() };
+      set({ projects: projects.map((p) => (p.id === next.id ? next : p)) });
+      scheduleSave(next.id);
+    },
+
+    selectActivity: (activityId) => set({ activityId, selected: [] }),
+    toggleSelected: (id) =>
+      set((s) => ({
+        selected: s.selected.includes(id)
+          ? s.selected.filter((x) => x !== id)
+          : [...s.selected, id],
+      })),
+    clearSelection: () => set({ selected: [] }),
+  };
+});
+
+export const useCurrent = (): Project | undefined =>
+  useWork((s) => s.projects.find((p) => p.id === s.currentId));
