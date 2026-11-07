@@ -1,5 +1,6 @@
 import type { Os } from "../core/os";
 import type { ImportedInfo } from "../core/project";
+import type { ZipEntry } from "../core/zipplan";
 import type { Project } from "../core/types";
 import type { Settings } from "../settings";
 
@@ -46,6 +47,13 @@ export interface Platform {
   ): Promise<PreparedRef[]>;
   cancelPrepare(): Promise<void>;
   readFile(projectId: string, dir: StoredDir, name: string): Promise<Uint8Array>;
+  canZip: boolean;
+  exportZip(
+    projectId: string,
+    entries: ZipEntry[],
+    csv: string,
+    suggestedName: string,
+  ): Promise<boolean>;
   saveFile(bytes: Uint8Array, suggestedName: string, extension: "pdf" | "zip"): Promise<boolean>;
   onFileDrop(handlers: DropHandlers): Promise<Unlisten>;
   loadSettings(): Promise<unknown>;

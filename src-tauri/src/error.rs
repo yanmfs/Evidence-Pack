@@ -10,6 +10,8 @@ pub enum AppError {
     UnsupportedType,
     #[error("image error: {0}")]
     Image(String),
+    #[error("zip error: {0}")]
+    Zip(String),
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 }

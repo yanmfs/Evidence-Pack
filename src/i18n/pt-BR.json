@@ -129,5 +129,11 @@
   "about.license": "Licença MIT",
   "about.github": "Código no GitHub",
   "about.madeBy": "Feito por {author}",
-  "web.notice": "Versão de teste no navegador. Os arquivos ficam só na memória desta aba."
+  "web.notice": "Versão de teste no navegador. Os arquivos ficam só na memória desta aba.",
+  "csv.activity": "Atividade",
+  "csv.number": "Número",
+  "csv.caption": "Legenda",
+  "csv.date": "Data",
+  "csv.dateSource": "Fonte da data",
+  "csv.originalFile": "Arquivo original"
 }

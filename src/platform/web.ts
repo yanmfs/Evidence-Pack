@@ -111,6 +111,8 @@ export const web: Platform = {
     const bytes = files.get(key(projectId, source, name));
     return bytes ? Promise.resolve(bytes) : Promise.reject(new Error("not found"));
   },
+  canZip: false,
+  exportZip: () => Promise.resolve(false),
   saveFile: (bytes, suggestedName) => {
     const url = URL.createObjectURL(new Blob([bytes as BlobPart]));
     const link = document.createElement("a");

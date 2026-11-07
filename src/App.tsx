@@ -1,4 +1,5 @@
-import { FileDown, Info, Settings, SlidersHorizontal } from "lucide-react";
+import { FileArchive, FileDown, Info, Settings, SlidersHorizontal } from "lucide-react";
+import { platform } from "./platform";
 import { useEffect } from "react";
 import { Button } from "./components/Button";
 import { Logo } from "./components/Logo";
@@ -6,7 +7,7 @@ import { Toaster } from "./components/Toaster";
 import { Tooltip, TooltipProvider } from "./components/Tooltip";
 import { itemsOf } from "./core/project";
 import { ExportDialog } from "./features/export/ExportDialog";
-import { exportable, exportPdf } from "./features/export/exporter";
+import { exportable, exportPdf, exportZip } from "./features/export/exporter";
 import { ProjectDialog } from "./features/project/ProjectDialog";
 import { ProjectSwitcher } from "./features/project/ProjectSwitcher";
 import { AboutDialog } from "./features/settings/AboutDialog";
@@ -74,6 +75,12 @@ export default function App() {
               <SlidersHorizontal className="size-4" aria-hidden />
               {t("top.project")}
             </Button>
+            {platform.canZip && (
+              <Button disabled={!project} onClick={() => void exportZip()}>
+                <FileArchive className="size-4" aria-hidden />
+                {t("top.exportZip")}
+              </Button>
+            )}
             <Button variant="primary" disabled={!project} onClick={onExport}>
               <FileDown className="size-4" aria-hidden />
               {t("top.exportPdf")}

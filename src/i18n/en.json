@@ -129,5 +129,11 @@
   "about.license": "MIT License",
   "about.github": "Source on GitHub",
   "about.madeBy": "Made by {author}",
-  "web.notice": "Browser demo. Files only live in this tab's memory."
+  "web.notice": "Browser demo. Files only live in this tab's memory.",
+  "csv.activity": "Activity",
+  "csv.number": "Number",
+  "csv.caption": "Caption",
+  "csv.date": "Date",
+  "csv.dateSource": "Date source",
+  "csv.originalFile": "Original file"
 }
