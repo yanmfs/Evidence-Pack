@@ -4,8 +4,7 @@
 
 Transforme prints, fotos e comprovantes em um relatório em PDF organizado, com capa, sumário e figuras numeradas, e em um ZIP para prestação de contas.
 
-<!-- Grave docs/demo.gif e descomente a linha abaixo. -->
-<!-- ![EvidencePack](docs/demo.gif) -->
+![EvidencePack](docs/demo.gif)
 
 | Claro                                                                    | Escuro                                                                   |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |

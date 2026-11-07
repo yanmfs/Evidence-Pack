@@ -4,8 +4,7 @@
 
 Turn screenshots, photos and receipts into an organized PDF report with a cover, contents and numbered figures, and into a ZIP for accountability.
 
-<!-- Record docs/demo.gif and uncomment the line below. -->
-<!-- ![EvidencePack](docs/demo.gif) -->
+![EvidencePack](docs/demo.gif)
 
 | Light                                                                | Dark                                                               |
 | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
