@@ -95,6 +95,6 @@ export function buildZipPlan(
     labels.originalFile,
     labels.sha256,
   ];
-  const csv = `﻿${[header, ...rows].map((r) => r.map(csvField).join(";")).join("\r\n")}\r\n`;
+  const csv = `\u{FEFF}${[header, ...rows].map((r) => r.map(csvField).join(";")).join("\r\n")}\r\n`;
   return { entries, csv };
 }

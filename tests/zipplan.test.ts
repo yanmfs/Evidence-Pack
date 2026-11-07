@@ -74,7 +74,7 @@ describe("buildZipPlan", () => {
 
   it("writes a UTF-8 BOM, semicolons and CRLF", () => {
     expect(
-      csv.startsWith("﻿Atividade;Número;Legenda;Data;Fonte da data;Arquivo original;SHA-256\r\n"),
+      csv.startsWith("\u{FEFF}Atividade;Número;Legenda;Data;Fonte da data;Arquivo original;SHA-256\r\n"),
     ).toBe(true);
     expect(csv.split("\r\n")).toHaveLength(6);
   });
