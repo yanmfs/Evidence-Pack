@@ -42,6 +42,9 @@ export interface Project {
   template: Template;
   imagesPerPage: 1 | 2;
   quality: "mid" | "high";
+  // Both are optional so projects saved before they existed keep loading.
+  figureList?: boolean;
+  signature?: { enabled: boolean; text: string };
   createdAt: string;
   updatedAt: string;
   activities: Activity[];

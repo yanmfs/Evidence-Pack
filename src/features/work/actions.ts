@@ -1,5 +1,5 @@
 import type { Evidence } from "../../core/types";
-import { evidenceFromImport, isDuplicate, addItems } from "../../core/project";
+import { evidenceFromImport, isDuplicate, addItems, routeByDate } from "../../core/project";
 import type { Key } from "../../i18n";
 import { platform, type ImportSource } from "../../platform";
 import { tNow } from "../../store";
@@ -49,8 +49,10 @@ export async function importSources(sources: ImportSource[]): Promise<void> {
     );
   }
   if (fresh.length === 0) return;
-  mutate((p) => addItems(p, fresh));
+  const { items, routed } = routeByDate(project, fresh);
+  mutate((p) => addItems(p, items));
   showToast(tNow("import.added", { count: fresh.length }));
+  if (routed > 0) showToast(tNow("import.routed", { count: routed }));
 }
 
 export async function pickAndImport(): Promise<void> {

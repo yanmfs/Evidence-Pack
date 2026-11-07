@@ -73,6 +73,7 @@ const evidence = (
 // 3 activities, 12 images and one 3-page PDF annex.
 export async function sampleProject(
   imagesPerPage: 1 | 2,
+  overrides: Partial<Project> = {},
 ): Promise<{ project: Project; assets: PdfAssets }> {
   let project = newProject("p", "2026-04-01T00:00:00Z", {
     title: "Relatório de Estágio Supervisionado",
@@ -84,6 +85,7 @@ export async function sampleProject(
     location: "Goiânia – GO",
     period: { start: "2026-03-01", end: "2026-03-31" },
     imagesPerPage,
+    ...overrides,
   });
   project = addActivity(project, "a1", "Atendimento ao usuário");
   project = addActivity(project, "a2", "Reuniões de equipe");
@@ -118,5 +120,8 @@ export async function sampleProject(
   );
   project = addItems(project, items);
   const pdfs = new Map([["pdf1", await makePdf(3)]]);
-  return { project, assets: { fonts: loadFonts("inter"), images, pdfs } };
+  return {
+    project,
+    assets: { fonts: loadFonts(project.template === "abnt" ? "arimo" : "inter"), images, pdfs },
+  };
 }

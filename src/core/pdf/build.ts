@@ -26,6 +26,12 @@ export interface ReportLabels {
   author: string;
   supervisor: string;
   period: string;
+  figureList: string;
+  signatureTitle: string;
+  // Used when the project has no declaration text of its own.
+  signatureText: string;
+  placeDate: string;
+  signature: string;
 }
 
 export interface BuildOptions {
@@ -51,6 +57,7 @@ type Op =
       text: string;
     }
   | { t: "rule"; x: number; y: number; w: number }
+  | { t: "hline"; x: number; y: number; w: number }
   | { t: "image"; id: string; x: number; y: number; w: number; h: number }
   | { t: "embed"; id: string; pageIndex: number; label: string };
 
@@ -71,6 +78,12 @@ interface Layout {
 const SIMPLE: Layout = {
   margin: { top: 2 * CM, right: 2 * CM, bottom: 2 * CM, left: 2 * CM },
   footer: 22,
+};
+
+// Inspired by NBR 14724: 3 cm top and left, 2 cm bottom and right; the page number sits in the top margin.
+const ABNT: Layout = {
+  margin: { top: 3 * CM, right: 2 * CM, bottom: 2 * CM, left: 3 * CM },
+  footer: 0,
 };
 
 function safeText(text: string, supported: Set<number>): string {
@@ -102,7 +115,11 @@ export async function buildReport(
   const wrap = (text: string, size: number, maxWidth: number, bold?: boolean) =>
     wrapText(clean(text), (s) => width(s, size, bold), maxWidth);
 
-  const L = SIMPLE;
+  const abnt = project.template === "abnt";
+  const L = abnt ? ABNT : SIMPLE;
+  const bodySize = abnt ? 12 : 11;
+  const bodyLead = abnt ? 1.5 : 1.45;
+  const upper = (text: string) => (abnt ? text.toLocaleUpperCase(options.locale) : text);
   const contentW = A4.w - L.margin.left - L.margin.right;
   const topY = A4.h - L.margin.top;
   const bottomY = L.margin.bottom + L.footer;
@@ -126,7 +143,7 @@ export async function buildReport(
         y -= size * 1.35;
         cover.ops.push({
           t: "text",
-          x: L.margin.left,
+          x: abnt ? L.margin.left + (contentW - width(l, size, opts.bold)) / 2 : L.margin.left,
           y,
           size,
           bold: opts.bold,
@@ -136,31 +153,49 @@ export async function buildReport(
       }
       y -= opts.gap ?? 0;
     };
-    line(project.institution, 13, { bold: true, color: "muted" });
-    line(project.course, 11, { color: "muted" });
-    y = A4.h * 0.58;
-    cover.ops.push({ t: "rule", x: L.margin.left, y: y + 18, w: 56 });
-    line(project.title || " ", 30, { bold: true, color: "accent", gap: 10 });
-    line(project.subtitle, 15, { color: "muted" });
-    y = L.margin.bottom + 120;
-    line(project.author ? `${options.labels.author}: ${project.author}` : undefined, 12, {
-      bold: true,
-      gap: 2,
-    });
-    line(
-      project.supervisor ? `${options.labels.supervisor}: ${project.supervisor}` : undefined,
-      11,
-      { gap: 2 },
-    );
-    if (project.period.start || project.period.end) {
-      const range = [project.period.start, project.period.end]
-        .filter((d): d is string => Boolean(d))
-        .map((d) => formatDate(d, options.locale))
-        .join(" – ");
-      line(`${options.labels.period}: ${range}`, 11, { color: "muted", gap: 14 });
-    }
+    const range = [project.period.start, project.period.end]
+      .filter((d): d is string => Boolean(d))
+      .map((d) => formatDate(d, options.locale))
+      .join(" – ");
     const year = (project.period.end ?? project.createdAt).slice(0, 4);
-    line([project.location, year].filter(Boolean).join(", "), 11, { color: "muted" });
+    if (abnt) {
+      line(upper(project.institution ?? ""), 14, { bold: true, gap: 4 });
+      line(project.course, 12);
+      y = A4.h * 0.7;
+      line(project.author, 12, { bold: true });
+      y = A4.h * 0.52;
+      line(upper(project.title || " "), 16, { bold: true, gap: 8 });
+      line(project.subtitle, 14);
+      y = A4.h * 0.3;
+      line(
+        project.supervisor ? `${options.labels.supervisor}: ${project.supervisor}` : undefined,
+        12,
+        { gap: 4 },
+      );
+      line(range ? `${options.labels.period}: ${range}` : undefined, 12);
+      y = L.margin.bottom + 56;
+      line(project.location, 12);
+      line(year, 12);
+    } else {
+      line(project.institution, 13, { bold: true, color: "muted" });
+      line(project.course, 11, { color: "muted" });
+      y = A4.h * 0.58;
+      cover.ops.push({ t: "rule", x: L.margin.left, y: y + 18, w: 56 });
+      line(project.title || " ", 30, { bold: true, color: "accent", gap: 10 });
+      line(project.subtitle, 15, { color: "muted" });
+      y = L.margin.bottom + 120;
+      line(project.author ? `${options.labels.author}: ${project.author}` : undefined, 12, {
+        bold: true,
+        gap: 2,
+      });
+      line(
+        project.supervisor ? `${options.labels.supervisor}: ${project.supervisor}` : undefined,
+        11,
+        { gap: 2 },
+      );
+      if (range) line(`${options.labels.period}: ${range}`, 11, { color: "muted", gap: 14 });
+      line([project.location, year].filter(Boolean).join(", "), 11, { color: "muted" });
+    }
   }
 
   // ---- content -----------------------------------------------------------
@@ -168,8 +203,9 @@ export async function buildReport(
   const perPage = project.imagesPerPage;
   const slotH = pageHeight / perPage - (perPage > 1 ? 10 : 0);
   const GAP = 6;
-  const captionSize = 10.5;
-  const sourceSize = 8.5;
+  const captionSize = abnt ? 10 : 10.5;
+  const sourceSize = abnt ? 10 : 8.5;
+  const figurePage = new Map<string, number>();
   const content: PlannedPage[] = [];
   const firstPageOf: number[] = [];
 
@@ -187,13 +223,14 @@ export async function buildReport(
     const page = newPage();
     firstPageOf.push(content.length - 1);
 
-    for (const l of wrap(activity.title, 18, contentW, true)) {
-      cursor -= 18 * 1.3;
+    const titleSize = abnt ? 14 : 18;
+    for (const l of wrap(upper(activity.title), titleSize, contentW, true)) {
+      cursor -= titleSize * 1.3;
       page.ops.push({
         t: "text",
         x: L.margin.left,
         y: cursor,
-        size: 18,
+        size: titleSize,
         bold: true,
         color: "accent",
         text: l,
@@ -216,13 +253,13 @@ export async function buildReport(
     }
     if (activity.description) {
       cursor -= 6;
-      for (const l of wrap(activity.description, 11, contentW)) {
-        cursor -= 11 * 1.45;
-        page.ops.push({ t: "text", x: L.margin.left, y: cursor, size: 11, text: l });
+      for (const l of wrap(activity.description, bodySize, contentW)) {
+        cursor -= bodySize * bodyLead;
+        page.ops.push({ t: "text", x: L.margin.left, y: cursor, size: bodySize, text: l });
       }
     }
     cursor -= 10;
-    page.ops.push({ t: "rule", x: L.margin.left, y: cursor, w: contentW });
+    if (!abnt) page.ops.push({ t: "rule", x: L.margin.left, y: cursor, w: contentW });
     cursor -= 16;
 
     let needsNewPage = false;
@@ -259,6 +296,7 @@ export async function buildReport(
       const h = image.height * scale;
       const page2 = content[content.length - 1]!;
       figuresOnPage++;
+      figurePage.set(item.id, content.length - 1);
 
       for (const l of caption) {
         cursor -= captionSize * 1.35;
@@ -289,56 +327,150 @@ export async function buildReport(
     }
   }
 
-  // ---- table of contents (needs the real page numbers) ---------------------
-  const ENTRY_H = 24;
-  const tocTitleH = 56;
-  const perTocPage = Math.max(1, Math.floor((pageHeight - tocTitleH) / ENTRY_H));
-  const tocPages = Math.max(1, Math.ceil(activities.length / perTocPage));
-  const firstContentIndex = 1 + tocPages;
-  const toc: PlannedPage[] = Array.from({ length: tocPages }, () => ({ ops: [] }));
-  toc[0]?.ops.push({
-    t: "text",
-    x: L.margin.left,
-    y: topY - 22,
-    size: 22,
-    bold: true,
-    color: "accent",
-    text: options.labels.summary,
-  });
-  activities.forEach(({ activity }, i) => {
-    const page = toc[Math.floor(i / perTocPage)];
-    const row = i % perTocPage;
-    const y = topY - (i < perTocPage ? tocTitleH : 24) - row * ENTRY_H - 14;
-    const pageNo = String(firstContentIndex + (firstPageOf[i] ?? 0) + 1);
-    const title = clean(activity.title);
-    const numberW = width(pageNo, 11);
-    let shown = title;
-    while (shown.length > 1 && width(shown, 11) > contentW - numberW - 40)
-      shown = shown.slice(0, -1);
-    if (shown !== title) shown = `${shown.trimEnd()}…`;
-    const dotsFrom = L.margin.left + width(shown, 11) + 6;
-    const dotsTo = A4.w - L.margin.right - numberW - 6;
-    const dots = ". ".repeat(Math.max(0, Math.floor((dotsTo - dotsFrom) / width(". ", 11))));
-    page?.ops.push({ t: "text", x: L.margin.left, y, size: 11, text: shown });
-    page?.ops.push({ t: "text", x: dotsFrom, y, size: 11, color: "muted", text: dots });
-    page?.ops.push({
+  // ---- table of contents and list of figures (need the real page numbers) ----
+  const ENTRY_H = abnt ? 26 : 24;
+  const listTitleH = 56;
+  const perListPage = Math.max(1, Math.floor((pageHeight - listTitleH) / ENTRY_H));
+  const figures = activities.flatMap((g) => g.items).filter((i) => i.kind === "image");
+  const withFigureList = Boolean(project.figureList) && figures.length > 0;
+  const pagesFor = (count: number) => Math.max(1, Math.ceil(count / perListPage));
+  const tocPages = pagesFor(activities.length);
+  const figurePages = withFigureList ? pagesFor(figures.length) : 0;
+  const firstContentIndex = 1 + tocPages + figurePages;
+  // ABNT counts from the sheet after the cover; the simple template counts the cover too.
+  const numberOf = (index: number) => (abnt ? index : index + 1);
+
+  const buildList = (title: string, entries: { text: string; page: string }[]): PlannedPage[] => {
+    const pages: PlannedPage[] = Array.from({ length: pagesFor(entries.length) }, () => ({
+      ops: [],
+    }));
+    pages[0]?.ops.push({
       t: "text",
-      x: A4.w - L.margin.right - numberW,
-      y,
-      size: 11,
+      x: L.margin.left,
+      y: topY - 22,
+      size: abnt ? 14 : 22,
       bold: true,
-      text: pageNo,
+      color: "accent",
+      text: upper(title),
     });
-  });
+    entries.forEach((entry, i) => {
+      const page = pages[Math.floor(i / perListPage)];
+      const row = i % perListPage;
+      const y = topY - (i < perListPage ? listTitleH : 24) - row * ENTRY_H - 14;
+      const text = clean(entry.text);
+      const numberW = width(entry.page, bodySize);
+      let shown = text;
+      while (shown.length > 1 && width(shown, bodySize) > contentW - numberW - 40)
+        shown = shown.slice(0, -1);
+      if (shown !== text) shown = `${shown.trimEnd()}…`;
+      const dotsFrom = L.margin.left + width(shown, bodySize) + 6;
+      const dotsTo = A4.w - L.margin.right - numberW - 6;
+      const dots = ". ".repeat(
+        Math.max(0, Math.floor((dotsTo - dotsFrom) / width(". ", bodySize))),
+      );
+      page?.ops.push({ t: "text", x: L.margin.left, y, size: bodySize, text: shown });
+      page?.ops.push({ t: "text", x: dotsFrom, y, size: bodySize, color: "muted", text: dots });
+      page?.ops.push({
+        t: "text",
+        x: A4.w - L.margin.right - numberW,
+        y,
+        size: bodySize,
+        bold: true,
+        text: entry.page,
+      });
+    });
+    return pages;
+  };
+
+  const toc = buildList(
+    options.labels.summary,
+    activities.map(({ activity }, i) => ({
+      text: activity.title,
+      page: String(numberOf(firstContentIndex + (firstPageOf[i] ?? 0))),
+    })),
+  );
+  const figureList = withFigureList
+    ? buildList(
+        options.labels.figureList,
+        figures.map((item) => ({
+          text: `${options.labels.figure} ${numbering.get(item.id)?.n ?? ""}${item.caption ? ` – ${item.caption}` : ""}`,
+          page: String(numberOf(firstContentIndex + (figurePage.get(item.id) ?? 0))),
+        })),
+      )
+    : [];
+
+  // ---- declaration and signature page ----------------------------------------
+  const closing: PlannedPage[] = [];
+  if (project.signature?.enabled) {
+    const page: PlannedPage = { ops: [] };
+    let y = topY;
+    const titleSize = abnt ? 14 : 22;
+    y -= titleSize * 1.3;
+    page.ops.push({
+      t: "text",
+      x: L.margin.left,
+      y,
+      size: titleSize,
+      bold: true,
+      color: "accent",
+      text: upper(options.labels.signatureTitle),
+    });
+    y -= 12;
+    const statement = project.signature.text.trim() || options.labels.signatureText;
+    for (const l of wrap(statement, bodySize, contentW)) {
+      y -= bodySize * bodyLead;
+      page.ops.push({ t: "text", x: L.margin.left, y, size: bodySize, text: l });
+    }
+    const lineW = contentW * 0.6;
+    y = A4.h * 0.45;
+    if (project.location) {
+      page.ops.push({
+        t: "text",
+        x: L.margin.left,
+        y: y + 4,
+        size: bodySize,
+        text: `${project.location},`,
+      });
+    }
+    page.ops.push({ t: "hline", x: L.margin.left, y, w: lineW });
+    page.ops.push({
+      t: "text",
+      x: L.margin.left,
+      y: y - 14,
+      size: 9,
+      color: "muted",
+      text: options.labels.placeDate,
+    });
+    y -= 90;
+    page.ops.push({ t: "hline", x: L.margin.left, y, w: lineW });
+    page.ops.push({
+      t: "text",
+      x: L.margin.left,
+      y: y - 14,
+      size: 9,
+      color: "muted",
+      text: options.labels.signature,
+    });
+    if (project.author) {
+      page.ops.push({
+        t: "text",
+        x: L.margin.left,
+        y: y - 28,
+        size: bodySize,
+        text: project.author,
+      });
+    }
+    closing.push(page);
+  }
 
   // ---- render --------------------------------------------------------------
-  const all = [cover, ...toc, ...content];
+  const all = [cover, ...toc, ...figureList, ...content, ...closing];
   const embeddedImages = new Map<string, Awaited<ReturnType<PDFDocument["embedPng"]>>>();
   const embeddedPdfs = new Map<string, PDFEmbeddedPage[]>();
   let done = 0;
 
   const color = (c?: "accent" | "muted") =>
-    c === "accent" ? ACCENT : c === "muted" ? MUTED : TEXT;
+    c === "accent" ? (abnt ? TEXT : ACCENT) : c === "muted" ? MUTED : TEXT;
 
   for (let index = 0; index < all.length; index++) {
     const planned = all[index]!;
@@ -352,6 +484,8 @@ export async function buildReport(
           font: font(op.bold),
           color: color(op.color),
         });
+      } else if (op.t === "hline") {
+        page.drawRectangle({ x: op.x, y: op.y, width: op.w, height: 0.7, color: TEXT });
       } else if (op.t === "rule") {
         page.drawRectangle({ x: op.x, y: op.y, width: op.w, height: 1.5, color: ACCENT });
       } else if (op.t === "image") {
@@ -398,14 +532,23 @@ export async function buildReport(
         }
       }
     }
-    if (index > 0) {
-      const label = String(index + 1);
+    if (index > 0 && !abnt) {
+      const label = String(numberOf(index));
       page.drawText(label, {
         x: (A4.w - width(label, 9)) / 2,
         y: L.margin.bottom - 4,
         size: 9,
         font: fonts.regular,
         color: MUTED,
+      });
+    } else if (abnt && index >= firstContentIndex) {
+      const label = String(numberOf(index));
+      page.drawText(label, {
+        x: A4.w - L.margin.right - width(label, 10),
+        y: A4.h - 2 * CM,
+        size: 10,
+        font: fonts.regular,
+        color: TEXT,
       });
     }
   }

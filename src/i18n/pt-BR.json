@@ -135,5 +135,15 @@
   "csv.caption": "Legenda",
   "csv.date": "Data",
   "csv.dateSource": "Fonte da data",
-  "csv.originalFile": "Arquivo original"
+  "csv.originalFile": "Arquivo original",
+  "report.figureList": "Lista de figuras",
+  "report.signatureTitle": "Declaração",
+  "report.signatureText": "Declaro que as informações e as evidências apresentadas neste relatório são verdadeiras.",
+  "report.placeDate": "Local e data",
+  "report.signature": "Assinatura",
+  "form.figureList": "Incluir lista de figuras",
+  "form.signature": "Incluir página de declaração e assinatura",
+  "form.signatureText": "Texto da declaração",
+  "import.routed_one": "{count} arquivo foi para a atividade do período da data dele.",
+  "import.routed_other": "{count} arquivos foram para a atividade do período da data deles."
 }

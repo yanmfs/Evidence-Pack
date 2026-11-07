@@ -111,6 +111,11 @@ export async function exportPdf(): Promise<void> {
         author: tNow("report.author"),
         supervisor: tNow("report.supervisor"),
         period: tNow("report.period"),
+        figureList: tNow("report.figureList"),
+        signatureTitle: tNow("report.signatureTitle"),
+        signatureText: tNow("report.signatureText"),
+        placeDate: tNow("report.placeDate"),
+        signature: tNow("report.signature"),
       },
       onProgress: (done, total) => {
         if (cancelled) throw new Cancelled();
