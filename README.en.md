@@ -14,6 +14,12 @@ Turn screenshots, photos and receipts into an organized PDF report with a cover,
 | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | ![EvidencePack window, light theme](docs/shots/macos-light-main.png) | ![EvidencePack window, dark theme](docs/shots/macos-dark-main.png) |
 
+## How it works
+
+<p align="center">
+  <img src="docs/how-it-works.svg" alt="Loose files become an organized report: numbered figures, captions, contents and a ZIP with the originals." width="100%">
+</p>
+
 ## Highlights
 
 - **Start from a template:** internship report, accountability report or portfolio, with sample activities.
