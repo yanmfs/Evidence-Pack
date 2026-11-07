@@ -151,5 +151,10 @@
   "projects.backupFailed": "Não consegui salvar a cópia.",
   "projects.import": "Abrir cópia de um projeto (.evpack)",
   "projects.imported": "Projeto aberto.",
-  "projects.importFailed": "Não consegui abrir este arquivo. Ele precisa ser uma cópia de projeto do EvidencePack."
+  "projects.importFailed": "Não consegui abrir este arquivo. Ele precisa ser uma cópia de projeto do EvidencePack.",
+  "form.logo": "Logo na capa",
+  "form.logoChoose": "Escolher imagem",
+  "form.logoChange": "Trocar",
+  "form.logoRemove": "Remover",
+  "form.logoFailed": "Escolha uma imagem (PNG ou JPG) para a logo."
 }

@@ -43,6 +43,7 @@ export interface Project {
   imagesPerPage: 1 | 2;
   quality: "mid" | "high";
   // Both are optional so projects saved before they existed keep loading.
+  logo?: { storedName: string; thumbName?: string; width: number; height: number };
   figureList?: boolean;
   signature?: { enabled: boolean; text: string };
   createdAt: string;

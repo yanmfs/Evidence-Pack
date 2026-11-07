@@ -5,7 +5,9 @@ import { Select } from "../../components/Select";
 import { Toggle } from "../../components/Toggle";
 import { Button } from "../../components/Button";
 import type { Project, Template } from "../../core/types";
-import { useApp, useT } from "../../store";
+import { platform } from "../../platform";
+import { tNow, useApp, useT } from "../../store";
+import { showToast } from "../../toast";
 import { useCurrent, useWork } from "../work/store";
 
 function Form({ project, onClose }: { project: Project; onClose: () => void }) {
@@ -14,6 +16,22 @@ function Form({ project, onClose }: { project: Project; onClose: () => void }) {
   const [draft, setDraft] = useState(project);
   const set = <K extends keyof Project>(key: K, value: Project[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
+  const chooseLogo = async () => {
+    const sources = (await platform.pickFiles().catch(() => [])).slice(0, 1);
+    if (sources.length === 0) return;
+    const [outcome] = await platform.importFiles(project.id, sources).catch(() => []);
+    if (outcome?.status === "ok" && outcome.file.kind === "image") {
+      const { storedName, thumbName, width, height } = outcome.file;
+      set("logo", {
+        storedName,
+        thumbName: thumbName ?? undefined,
+        width: width ?? 1,
+        height: height ?? 1,
+      });
+    } else {
+      showToast(tNow("form.logoFailed"), "error");
+    }
+  };
   const save = () => {
     mutate(() => draft);
     onClose();
@@ -88,6 +106,26 @@ function Form({ project, onClose }: { project: Project; onClose: () => void }) {
         </Select>
       </div>
       {draft.template === "abnt" && <p className="text-xs text-muted">{t("form.abntNote")}</p>}
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm">{t("form.logo")}</span>
+        <div className="flex items-center gap-2">
+          {draft.logo?.thumbName && (
+            <img
+              alt=""
+              src={platform.thumbUrl(project.id, draft.logo.thumbName)}
+              className="h-8 max-w-24 rounded-control border border-border bg-white object-contain"
+            />
+          )}
+          <Button onClick={() => void chooseLogo()}>
+            {draft.logo ? t("form.logoChange") : t("form.logoChoose")}
+          </Button>
+          {draft.logo && (
+            <Button variant="ghost" onClick={() => set("logo", undefined)}>
+              {t("form.logoRemove")}
+            </Button>
+          )}
+        </div>
+      </div>
       <Toggle
         label={t("form.figureList")}
         checked={Boolean(draft.figureList)}

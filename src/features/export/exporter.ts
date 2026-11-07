@@ -63,7 +63,12 @@ export async function exportPdf(): Promise<void> {
   const images = reported.filter((i) => i.kind === "image");
   try {
     set({ stage: "preparing", done: 0, total: images.length });
-    const unique = [...new Set(images.map((i) => i.storedName))];
+    const unique = [
+      ...new Set([
+        ...images.map((i) => i.storedName),
+        ...(project.logo ? [project.logo.storedName] : []),
+      ]),
+    ];
     const prepared = await platform.prepareImages(
       project.id,
       project.quality,
@@ -85,6 +90,16 @@ export async function exportPdf(): Promise<void> {
         height: ref.height || item.height || 1,
       });
     }
+    let logo: PreparedImage | undefined;
+    const logoRef = project.logo ? byStored.get(project.logo.storedName) : undefined;
+    if (project.logo && logoRef) {
+      logo = {
+        bytes: await platform.readFile(project.id, dir, logoRef.cachedName),
+        format: logoRef.format,
+        width: logoRef.width || project.logo.width || 1,
+        height: logoRef.height || project.logo.height || 1,
+      };
+    }
     const pdfs = new Map<string, Uint8Array>();
     for (const item of reported.filter((i) => i.kind === "pdf")) {
       pdfs.set(item.id, await platform.readFile(project.id, "files", item.storedName));
@@ -97,6 +112,7 @@ export async function exportPdf(): Promise<void> {
         bold: await fetchBytes(useArimo ? arimoBold : interSemibold),
       },
       images: preparedImages,
+      logo,
       pdfs,
     };
 
