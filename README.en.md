@@ -36,11 +36,12 @@ xattr -cr /Applications/EvidencePack.app
 
 ## How to use
 
-1. Create a project and fill in the cover details under "Project details".
+1. Create a project and fill in the cover details under "Project details". That is also where the template (Simple or ABNT), the cover logo, the list of figures and the declaration and signature page live.
 2. Create the activities in the sidebar.
-3. Drop screenshots, photos and PDFs on the chosen activity. The date comes from EXIF, the file name or the file date, and the card badge shows where it came from.
+3. Drop screenshots, photos and PDFs on the chosen activity. The date comes from EXIF, the file name or the file date, and the card badge shows where it came from. If the activities have periods, a file with a reliable date (EXIF or name) goes straight to the activity whose period contains it.
 4. Tweak captions and dates on the cards, drag to reorder or use "Sort by date".
 5. Export the PDF (cover, contents, one section per activity, numbered figures) or the ZIP with the originals and a CSV index.
+6. To keep a project or move it to another computer, use "Save a project copy" (`.evpack`, originals included) and "Open a project copy".
 
 ## What it does and does not do
 
@@ -48,7 +49,7 @@ It copies files into the project folder (originals are never touched), detects d
 
 It does not:
 
-- Offer the ABNT template yet; Simple is the only one. When ABNT arrives it will be "inspired by ABNT" and you should check your institution's rules.
+- Guarantee ABNT compliance. The ABNT template is "inspired by ABNT" (NBR 14724 margins, 12 pt text, 1.5 spacing, page number at the top right); check your institution's rules before handing in.
 - Edit images or read their content.
 - Open HEIC photos on Windows; export them as JPG first. Password-protected PDFs are refused.
 - Keep links and forms inside attached PDFs.
@@ -69,10 +70,8 @@ pnpm test
 
 ## Roadmap
 
-- ABNT template, list of figures and a signature page.
-- Automatic activity suggestion from date and period.
-- Import and export a project as `.evpack`.
-- Institution logo on the cover.
+- More cover templates.
+- Title page and abstract in the ABNT template.
 
 ## Contributing
 
