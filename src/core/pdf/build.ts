@@ -15,6 +15,8 @@ export interface PreparedImage {
 export interface PdfAssets {
   fonts: { regular: Uint8Array; bold: Uint8Array };
   images: Map<string, PreparedImage>;
+  // Printed at the top of the cover.
+  logo?: PreparedImage;
   pdfs: Map<string, Uint8Array>;
 }
 
@@ -41,6 +43,8 @@ export interface BuildOptions {
 }
 
 const CM = 28.3465;
+const LOGO_KEY = "cover-logo";
+const LOGO_MAX = { w: 150, h: 64 };
 const A4 = { w: 595.28, h: 841.89 };
 const ACCENT = rgb(0.231, 0.357, 0.859);
 const TEXT = rgb(0.09, 0.1, 0.12);
@@ -115,6 +119,8 @@ export async function buildReport(
   const wrap = (text: string, size: number, maxWidth: number, bold?: boolean) =>
     wrapText(clean(text), (s) => width(s, size, bold), maxWidth);
 
+  const images = new Map(assets.images);
+  if (assets.logo) images.set(LOGO_KEY, assets.logo);
   const abnt = project.template === "abnt";
   const L = abnt ? ABNT : SIMPLE;
   const bodySize = abnt ? 12 : 11;
@@ -158,6 +164,20 @@ export async function buildReport(
       .map((d) => formatDate(d, options.locale))
       .join(" – ");
     const year = (project.period.end ?? project.createdAt).slice(0, 4);
+    if (assets.logo) {
+      const scale = Math.min(LOGO_MAX.w / assets.logo.width, LOGO_MAX.h / assets.logo.height, 1);
+      const w = assets.logo.width * scale;
+      const h = assets.logo.height * scale;
+      cover.ops.push({
+        t: "image",
+        id: LOGO_KEY,
+        x: abnt ? L.margin.left + (contentW - w) / 2 : L.margin.left,
+        y: topY - h,
+        w,
+        h,
+      });
+      y -= h + 14;
+    }
     if (abnt) {
       line(upper(project.institution ?? ""), 14, { bold: true, gap: 4 });
       line(project.course, 12);
@@ -275,7 +295,7 @@ export async function buildReport(
         continue;
       }
 
-      const image = assets.images.get(item.id);
+      const image = images.get(item.id);
       if (!image) throw new Error(`Missing prepared image for ${item.id}`);
       const date = item.date ? ` (${formatDate(item.date, options.locale)})` : "";
       const captionText = `${options.labels.figure} ${number?.n ?? ""}${item.caption ? ` – ${item.caption}` : ""}${date}`;
@@ -491,13 +511,13 @@ export async function buildReport(
       } else if (op.t === "image") {
         let embedded = embeddedImages.get(op.id);
         if (!embedded) {
-          const src = assets.images.get(op.id)!;
+          const src = images.get(op.id)!;
           embedded =
             src.format === "png" ? await doc.embedPng(src.bytes) : await doc.embedJpg(src.bytes);
           embeddedImages.set(op.id, embedded);
         }
         page.drawImage(embedded, { x: op.x, y: op.y, width: op.w, height: op.h });
-        options.onProgress?.(++done, total);
+        if (op.id !== LOGO_KEY) options.onProgress?.(++done, total);
         if (done % 3 === 0) await new Promise((r) => setTimeout(r, 0));
       } else {
         let pages = embeddedPdfs.get(op.id);

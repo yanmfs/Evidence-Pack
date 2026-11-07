@@ -1,8 +1,9 @@
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { PDFDict, PDFDocument, PDFName } from "pdf-lib";
 import { describe, expect, it } from "vitest";
 import { buildReport, type BuildOptions } from "../src/core/pdf/build";
 import { wrapText } from "../src/core/pdf/wrap";
-import { sampleProject } from "./helpers/fixtures";
+import { makeImage, sampleProject } from "./helpers/fixtures";
 
 const options: BuildOptions = {
   locale: "pt-BR",
@@ -195,5 +196,38 @@ describe("ABNT template", () => {
       "transform" in it ? [it.transform[4] as number] : [],
     );
     expect(Math.min(...lefts)).toBeGreaterThanOrEqual(3 * 28.3465 - 0.5);
+  });
+});
+
+describe("cover logo", () => {
+  const imagesOnCover = async (bytes: Uint8Array) => {
+    const doc = await PDFDocument.load(bytes);
+    const xobjects = doc.getPage(0).node.Resources()?.lookupMaybe(PDFName.of("XObject"), PDFDict);
+    return xobjects?.keys().length ?? 0;
+  };
+
+  it("prints the logo on the cover and keeps the figure count and progress intact", async () => {
+    const { project, assets } = await sampleProject(1);
+    const without = await buildReport(project, assets, options);
+    const progress: number[] = [];
+    const withLogo = await buildReport(
+      project,
+      { ...assets, logo: makeImage("png", 300, 120, 90) },
+      { ...options, onProgress: (d) => progress.push(d) },
+    );
+    expect(await imagesOnCover(without)).toBe(0);
+    expect(await imagesOnCover(withLogo)).toBe(1);
+    expect((await readPages(withLogo)).length).toBe((await readPages(without)).length);
+    expect(progress.at(-1)).toBe(13);
+  });
+
+  it("also works on the ABNT cover", async () => {
+    const { project, assets } = await sampleProject(1, { template: "abnt" });
+    const bytes = await buildReport(
+      project,
+      { ...assets, logo: makeImage("jpg", 200, 200, 30) },
+      options,
+    );
+    expect(await imagesOnCover(bytes)).toBe(1);
   });
 });
