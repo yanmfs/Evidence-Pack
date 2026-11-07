@@ -20,6 +20,7 @@ import {
   removeItems,
   reorderItem,
   sortByDate,
+  routeByDate,
   suggestActivity,
   updateActivity,
 } from "../src/core/project";
@@ -183,6 +184,20 @@ describe("project operations", () => {
     expect(suggestActivity(p, "2026-03-20")).toBe("a2");
     expect(suggestActivity(p, "2026-04-01")).toBeNull();
     expect(suggestActivity(p, null)).toBeNull();
+  });
+
+  it("routes dropped files by date, ignoring weak file dates", () => {
+    let p = sample();
+    p = updateActivity(p, "a2", { start: "2026-03-16", end: "2026-03-31" });
+    const dropped = [
+      { ...ev("n1", "a1"), date: "2026-03-20", dateSource: "exif" as const },
+      { ...ev("n2", "a1"), date: "2026-03-20", dateSource: "filename" as const },
+      { ...ev("n3", "a1"), date: "2026-03-20", dateSource: "file" as const },
+      { ...ev("n4", "a1"), date: "2026-02-01", dateSource: "exif" as const },
+    ];
+    const { items, routed } = routeByDate(p, dropped);
+    expect(items.map((i) => i.activityId)).toEqual(["a2", "a2", "a1", "a1"]);
+    expect(routed).toBe(2);
   });
 });
 

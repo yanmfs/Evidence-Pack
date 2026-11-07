@@ -135,5 +135,15 @@
   "csv.caption": "Caption",
   "csv.date": "Date",
   "csv.dateSource": "Date source",
-  "csv.originalFile": "Original file"
+  "csv.originalFile": "Original file",
+  "report.figureList": "List of figures",
+  "report.signatureTitle": "Declaration",
+  "report.signatureText": "I declare that the information and evidence presented in this report are true.",
+  "report.placeDate": "Place and date",
+  "report.signature": "Signature",
+  "form.figureList": "Include a list of figures",
+  "form.signature": "Include a declaration and signature page",
+  "form.signatureText": "Declaration text",
+  "import.routed_one": "{count} file went to the activity whose period contains its date.",
+  "import.routed_other": "{count} files went to the activity whose period contains their date."
 }

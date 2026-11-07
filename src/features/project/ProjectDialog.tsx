@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Dialog } from "../../components/Dialog";
 import { Field } from "../../components/Field";
 import { Select } from "../../components/Select";
+import { Toggle } from "../../components/Toggle";
 import { Button } from "../../components/Button";
-import type { Project } from "../../core/types";
+import type { Project, Template } from "../../core/types";
 import { useApp, useT } from "../../store";
 import { useCurrent, useWork } from "../work/store";
 
@@ -62,6 +63,14 @@ function Form({ project, onClose }: { project: Project; onClose: () => void }) {
       </div>
       <div className="grid grid-cols-2 gap-3">
         <Select
+          label={t("form.template")}
+          value={draft.template}
+          onChange={(v) => set("template", v as Template)}
+        >
+          <option value="simple">{t("form.template.simple")}</option>
+          <option value="abnt">{t("form.template.abnt")}</option>
+        </Select>
+        <Select
           label={t("form.imagesPerPage")}
           value={String(draft.imagesPerPage)}
           onChange={(v) => set("imagesPerPage", v === "2" ? 2 : 1)}
@@ -78,6 +87,25 @@ function Form({ project, onClose }: { project: Project; onClose: () => void }) {
           <option value="high">{t("form.quality.high")}</option>
         </Select>
       </div>
+      {draft.template === "abnt" && <p className="text-xs text-muted">{t("form.abntNote")}</p>}
+      <Toggle
+        label={t("form.figureList")}
+        checked={Boolean(draft.figureList)}
+        onChange={(v) => set("figureList", v)}
+      />
+      <Toggle
+        label={t("form.signature")}
+        checked={Boolean(draft.signature?.enabled)}
+        onChange={(v) => set("signature", { enabled: v, text: draft.signature?.text ?? "" })}
+      />
+      {draft.signature?.enabled && (
+        <Field
+          multiline
+          label={t("form.signatureText")}
+          value={draft.signature.text}
+          onChange={(v) => set("signature", { enabled: true, text: v })}
+        />
+      )}
       <p className="text-xs text-muted">{t("form.privacyNote")}</p>
       <div className="mt-1 flex justify-end">
         <Button variant="primary" onClick={save}>

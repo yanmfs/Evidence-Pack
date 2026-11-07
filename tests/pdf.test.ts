@@ -14,6 +14,11 @@ const options: BuildOptions = {
     author: "Autor",
     supervisor: "Orientador",
     period: "Período",
+    figureList: "Lista de figuras",
+    signatureTitle: "Declaração",
+    signatureText: "Declaro que as informações são verdadeiras.",
+    placeDate: "Local e data",
+    signature: "Assinatura",
   },
 };
 
@@ -119,5 +124,76 @@ describe("buildReport", () => {
     await expect(buildReport(project, assets, options)).rejects.toThrow(
       "Missing prepared image for e1",
     );
+  });
+});
+
+describe("optional pages", () => {
+  const sentence = "Declaro que li e conferi cada evidência.";
+
+  it("adds a list of figures with the real page of each figure", async () => {
+    const { project, assets } = await sampleProject(1, { figureList: true });
+    const pages = await readPages(await buildReport(project, assets, options));
+    // cover + summary + list + 12 figure pages + 3 annex pages
+    expect(pages).toHaveLength(3 + 12 + 3);
+    expect(pages[2]).toContain("Lista de figuras");
+    const entry = /Figura 5 – Legenda 5: ação, coração, pé, à, ü, ç[\s.]*?(\d+)/.exec(pages[2]!);
+    const real = pages.findIndex((p, i) => i > 2 && p.includes("Figura 5 –")) + 1;
+    expect(Number(entry?.[1])).toBe(real);
+  });
+
+  it("adds a declaration page with the editable text and signature lines", async () => {
+    const { project, assets } = await sampleProject(1, {
+      signature: { enabled: true, text: sentence },
+    });
+    const pages = await readPages(await buildReport(project, assets, options));
+    const last = pages.at(-1) ?? "";
+    expect(pages).toHaveLength(2 + 12 + 3 + 1);
+    expect(last).toContain("Declaração");
+    expect(last).toContain(sentence);
+    expect(last).toContain("Local e data");
+    expect(last).toContain("Maria Fictícia da Silva");
+  });
+
+  it("falls back to the default declaration text", async () => {
+    const { project, assets } = await sampleProject(1, {
+      signature: { enabled: true, text: "  " },
+    });
+    const pages = await readPages(await buildReport(project, assets, options));
+    expect(pages.at(-1)).toContain("Declaro que as informações são verdadeiras.");
+  });
+});
+
+describe("ABNT template", () => {
+  it("counts pages from the sheet after the cover and prints them at the top right", async () => {
+    const { project, assets } = await sampleProject(1, {
+      template: "abnt",
+      figureList: true,
+      signature: { enabled: true, text: "" },
+    });
+    const pages = await readPages(await buildReport(project, assets, options));
+    // cover + summary + list + 12 figure pages + 3 annex pages + declaration
+    expect(pages).toHaveLength(3 + 12 + 3 + 1);
+    expect(pages[0]).toContain("UNIVERSIDADE EXEMPLO");
+    expect(pages[1]).toContain("SUMÁRIO");
+    expect(pages[2]).toContain("LISTA DE FIGURAS");
+
+    // The first section is the 4th sheet, which is page 3 because the cover is not counted.
+    expect(pages[3]?.trim().endsWith("3")).toBe(true);
+    expect(pages[4]?.trim().endsWith("4")).toBe(true);
+    expect(pages[0]?.trim().endsWith("1")).toBe(false);
+
+    const entry = /Atendimento ao usuário[\s.]*?(\d+)/i.exec(pages[1]!);
+    expect(Number(entry?.[1])).toBe(3);
+  });
+
+  it("uses margins of 3 cm on the left and 2 cm on the right", async () => {
+    const { project, assets } = await sampleProject(1, { template: "abnt" });
+    const bytes = await buildReport(project, assets, options);
+    const pdf = await getDocument({ data: new Uint8Array(bytes), verbosity: 0 }).promise;
+    const content = await (await pdf.getPage(3)).getTextContent();
+    const lefts = content.items.flatMap((it) =>
+      "transform" in it ? [it.transform[4] as number] : [],
+    );
+    expect(Math.min(...lefts)).toBeGreaterThanOrEqual(3 * 28.3465 - 0.5);
   });
 });

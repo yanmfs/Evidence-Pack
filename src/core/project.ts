@@ -208,3 +208,17 @@ export function suggestActivity(p: Project, date: string | null): string | null 
   );
   return match?.id ?? null;
 }
+
+// Files dropped into the app go to the selected activity, unless an activity has a period that
+// contains the file's date. File modification dates are too weak a hint to move anything.
+export function routeByDate(p: Project, items: Evidence[]): { items: Evidence[]; routed: number } {
+  let routed = 0;
+  const out = items.map((item) => {
+    if (item.dateSource !== "exif" && item.dateSource !== "filename") return item;
+    const match = suggestActivity(p, item.date);
+    if (!match || match === item.activityId) return item;
+    routed++;
+    return { ...item, activityId: match };
+  });
+  return { items: out, routed };
+}
