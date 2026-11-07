@@ -29,7 +29,8 @@ pub fn run() {
             import::import_files,
             prepare::prepare_images,
             prepare::cancel_prepare,
-            export::save_file
+            export::save_file,
+            export::export_zip
         ])
         .run(tauri::generate_context!())
         .expect("error while running EvidencePack");

@@ -72,6 +72,16 @@ export const tauri: Platform = {
   cancelPrepare: () => invoke("cancel_prepare"),
   readFile: async (id, dir, name) =>
     new Uint8Array(await invoke<ArrayBuffer>("read_project_file", { id, dir, name })),
+  canZip: true,
+  exportZip: async (projectId, entries, csv, suggestedName) => {
+    const target = await save({
+      defaultPath: suggestedName,
+      filters: [{ name: "ZIP", extensions: ["zip"] }],
+    });
+    if (!target) return false;
+    await invoke("export_zip", { projectId, target, entries, csv });
+    return true;
+  },
   saveFile: async (bytes, suggestedName, extension) => {
     const target = await save({
       defaultPath: suggestedName,

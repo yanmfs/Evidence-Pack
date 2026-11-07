@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { buildReport, type PdfAssets, type PreparedImage } from "../../core/pdf/build";
 import { itemsOf, sortedActivities } from "../../core/project";
+import { buildZipPlan } from "../../core/zipplan";
 import type { Project } from "../../core/types";
 import { platform } from "../../platform";
 import { selectLang, tNow, useApp } from "../../store";
@@ -123,5 +124,35 @@ export async function exportPdf(): Promise<void> {
     if (!(error instanceof Cancelled)) showToast(tNow("export.failed"), "error");
   } finally {
     set({ stage: "idle", done: 0, total: 0 });
+  }
+}
+
+export async function exportZip(): Promise<void> {
+  const { projects, currentId } = useWork.getState();
+  const project = projects.find((p) => p.id === currentId);
+  if (!project) return;
+  if (exportable(project).length === 0) return showToast(tNow("export.nothing"), "error");
+  const { entries, csv } = buildZipPlan(project, selectLang(useApp.getState()), {
+    activity: tNow("csv.activity"),
+    number: tNow("csv.number"),
+    caption: tNow("csv.caption"),
+    date: tNow("csv.date"),
+    dateSource: tNow("csv.dateSource"),
+    originalFile: tNow("csv.originalFile"),
+    sha256: "SHA-256",
+    figure: tNow("report.figure"),
+    annex: tNow("report.annex"),
+    sources: {
+      exif: tNow("date.exif"),
+      filename: tNow("date.filename"),
+      file: tNow("date.file"),
+      manual: tNow("date.manual"),
+    },
+  });
+  try {
+    if (await platform.exportZip(project.id, entries, csv, `${slug(project.title)}.zip`))
+      showToast(tNow("export.zipDone"));
+  } catch {
+    showToast(tNow("export.failed"), "error");
   }
 }
