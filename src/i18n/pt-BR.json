@@ -145,5 +145,11 @@
   "form.signature": "Incluir página de declaração e assinatura",
   "form.signatureText": "Texto da declaração",
   "import.routed_one": "{count} arquivo foi para a atividade do período da data dele.",
-  "import.routed_other": "{count} arquivos foram para a atividade do período da data deles."
+  "import.routed_other": "{count} arquivos foram para a atividade do período da data deles.",
+  "projects.backup": "Salvar cópia do projeto (.evpack)",
+  "projects.backedUp": "Cópia salva.",
+  "projects.backupFailed": "Não consegui salvar a cópia.",
+  "projects.import": "Abrir cópia de um projeto (.evpack)",
+  "projects.imported": "Projeto aberto.",
+  "projects.importFailed": "Não consegui abrir este arquivo. Ele precisa ser uma cópia de projeto do EvidencePack."
 }

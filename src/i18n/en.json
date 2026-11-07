@@ -145,5 +145,11 @@
   "form.signature": "Include a declaration and signature page",
   "form.signatureText": "Declaration text",
   "import.routed_one": "{count} file went to the activity whose period contains its date.",
-  "import.routed_other": "{count} files went to the activity whose period contains their date."
+  "import.routed_other": "{count} files went to the activity whose period contains their date.",
+  "projects.backup": "Save a project copy (.evpack)",
+  "projects.backedUp": "Copy saved.",
+  "projects.backupFailed": "I couldn't save the copy.",
+  "projects.import": "Open a project copy (.evpack)",
+  "projects.imported": "Project opened.",
+  "projects.importFailed": "I couldn't open this file. It must be an EvidencePack project copy."
 }

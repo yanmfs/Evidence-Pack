@@ -222,3 +222,33 @@ export function routeByDate(p: Project, items: Evidence[]): { items: Evidence[];
   });
   return { items: out, routed };
 }
+
+// A project read from a backup file: shape-checked, given a fresh id, and filled in where older
+// or hand-edited files lack fields.
+export function parseProject(json: string, id: string, now: string): Project | null {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(json);
+  } catch {
+    return null;
+  }
+  if (typeof raw !== "object" || raw === null) return null;
+  const r = raw as Partial<Project>;
+  if (!Array.isArray(r.activities) || !Array.isArray(r.items)) return null;
+  const base = newProject(id, now);
+  return {
+    ...base,
+    ...r,
+    id,
+    title: typeof r.title === "string" ? r.title : base.title,
+    author: typeof r.author === "string" ? r.author : base.author,
+    period: typeof r.period === "object" && r.period !== null ? r.period : base.period,
+    template: r.template === "abnt" ? "abnt" : "simple",
+    imagesPerPage: r.imagesPerPage === 2 ? 2 : 1,
+    quality: r.quality === "high" ? "high" : "mid",
+    createdAt: typeof r.createdAt === "string" ? r.createdAt : now,
+    updatedAt: now,
+    activities: r.activities,
+    items: r.items,
+  };
+}

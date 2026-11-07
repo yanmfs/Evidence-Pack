@@ -72,6 +72,24 @@ export const tauri: Platform = {
   cancelPrepare: () => invoke("cancel_prepare"),
   readFile: async (id, dir, name) =>
     new Uint8Array(await invoke<ArrayBuffer>("read_project_file", { id, dir, name })),
+  canBackup: true,
+  exportProject: async (projectId, suggestedName) => {
+    const target = await save({
+      defaultPath: suggestedName,
+      filters: [{ name: "EvidencePack", extensions: ["evpack"] }],
+    });
+    if (!target) return false;
+    await invoke("export_project", { projectId, target });
+    return true;
+  },
+  importProject: async (newId) => {
+    const source = await open({
+      multiple: false,
+      filters: [{ name: "EvidencePack", extensions: ["evpack"] }],
+    });
+    if (typeof source !== "string") return null;
+    return invoke<string>("import_project", { source, newId });
+  },
   canZip: true,
   exportZip: async (projectId, entries, csv, suggestedName) => {
     const target = await save({

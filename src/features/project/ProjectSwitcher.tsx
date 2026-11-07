@@ -1,11 +1,21 @@
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../../components/Button";
 import { Dialog } from "../../components/Dialog";
 import { Field } from "../../components/Field";
 import { Tooltip } from "../../components/Tooltip";
-import { useT } from "../../store";
+import { platform } from "../../platform";
+import { tNow, useT } from "../../store";
+import { showToast } from "../../toast";
 import { useCurrent, useWork } from "../work/store";
+
+const backupName = (title: string) =>
+  title
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[^\w]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase() || "projeto";
 
 type Mode = "new" | "rename" | "delete" | null;
 
@@ -13,7 +23,7 @@ export function ProjectSwitcher() {
   const t = useT();
   const projects = useWork((s) => s.projects);
   const current = useCurrent();
-  const { switchProject, createProject, deleteProject, mutate } = useWork.getState();
+  const { switchProject, createProject, deleteProject, importProject, mutate } = useWork.getState();
   const [mode, setMode] = useState<Mode>(null);
   const [name, setName] = useState("");
 
@@ -54,8 +64,44 @@ export function ProjectSwitcher() {
           <Plus className="size-4" aria-hidden />
         </Button>
       </Tooltip>
+      {platform.canBackup && (
+        <Tooltip label={t("projects.import")}>
+          <Button
+            variant="ghost"
+            icon
+            aria-label={t("projects.import")}
+            onClick={() =>
+              void importProject().then(
+                (done) => done && showToast(tNow("projects.imported")),
+                () => showToast(tNow("projects.importFailed"), "error"),
+              )
+            }
+          >
+            <ArchiveRestore className="size-4" aria-hidden />
+          </Button>
+        </Tooltip>
+      )}
       {current && (
         <>
+          {platform.canBackup && (
+            <Tooltip label={t("projects.backup")}>
+              <Button
+                variant="ghost"
+                icon
+                aria-label={t("projects.backup")}
+                onClick={() =>
+                  void platform
+                    .exportProject(current.id, `${backupName(current.title)}.evpack`)
+                    .then(
+                      (saved) => saved && showToast(tNow("projects.backedUp")),
+                      () => showToast(tNow("projects.backupFailed"), "error"),
+                    )
+                }
+              >
+                <Archive className="size-4" aria-hidden />
+              </Button>
+            </Tooltip>
+          )}
           <Tooltip label={t("projects.rename")}>
             <Button
               variant="ghost"

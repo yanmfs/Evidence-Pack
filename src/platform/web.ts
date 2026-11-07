@@ -111,6 +111,9 @@ export const web: Platform = {
     const bytes = files.get(key(projectId, source, name));
     return bytes ? Promise.resolve(bytes) : Promise.reject(new Error("not found"));
   },
+  canBackup: false,
+  exportProject: () => Promise.resolve(false),
+  importProject: () => Promise.resolve(null),
   canZip: false,
   exportZip: () => Promise.resolve(false),
   saveFile: (bytes, suggestedName) => {
