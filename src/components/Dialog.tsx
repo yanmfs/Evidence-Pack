@@ -17,15 +17,17 @@ export function Dialog({ open, onOpenChange, title, children, dismissible = true
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="anim-fade fixed inset-0 z-40 bg-black/45" />
+        <RadixDialog.Overlay className="anim-fade fixed inset-0 z-40 bg-black/50" />
         <RadixDialog.Content
           aria-describedby={undefined}
           onInteractOutside={(e) => !dismissible && e.preventDefault()}
           onEscapeKeyDown={(e) => !dismissible && e.preventDefault()}
-          className="anim-pop fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-32px)] w-[min(460px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-panel border border-border bg-surface p-5 shadow-2xl"
+          className="anim-pop fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-32px)] w-[min(460px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-panel border border-border-strong/60 bg-surface p-5 shadow-[0_24px_64px_-24px_rgb(0_0_0/0.55)]"
         >
           <div className="mb-4 flex items-center justify-between">
-            <RadixDialog.Title className="text-base font-semibold">{title}</RadixDialog.Title>
+            <RadixDialog.Title className="font-display text-lg font-semibold tracking-tight">
+              {title}
+            </RadixDialog.Title>
             {dismissible && (
               <RadixDialog.Close asChild>
                 <Button variant="ghost" icon aria-label={t("dialog.close")}>

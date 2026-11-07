@@ -18,11 +18,13 @@ export function Tooltip({ label, hint, children }: Props) {
       <RadixTooltip.Portal>
         <RadixTooltip.Content
           sideOffset={6}
-          className="anim-fade z-50 flex items-center gap-2 rounded-control bg-text px-2.5 py-1.5 text-xs text-bg shadow-lg"
+          className="anim-fade z-50 flex items-center gap-2 rounded-md bg-text px-2 py-1 text-xs font-medium text-bg shadow-md"
         >
           {label}
           {hint && (
-            <kbd className="rounded bg-bg/20 px-1.5 py-0.5 font-sans text-[11px]">{hint}</kbd>
+            <kbd className="rounded-[4px] bg-bg/20 px-1.5 py-px font-mono text-[10.5px]">
+              {hint}
+            </kbd>
           )}
         </RadixTooltip.Content>
       </RadixTooltip.Portal>

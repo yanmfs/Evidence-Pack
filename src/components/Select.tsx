@@ -12,7 +12,7 @@ export function Select<T extends string>({ label, value, onChange, children }: P
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm">
+      <label htmlFor={id} className="text-xs font-medium text-muted">
         {label}
       </label>
       <div className="relative">
@@ -20,7 +20,7 @@ export function Select<T extends string>({ label, value, onChange, children }: P
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value as T)}
-          className="h-9 w-full appearance-none rounded-control border border-border bg-surface px-3 pr-8 text-sm"
+          className="h-8 w-full appearance-none rounded-control border border-border-strong/70 bg-surface px-2.5 pr-8 text-[13px]"
         >
           {children}
         </select>
