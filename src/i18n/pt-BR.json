@@ -136,12 +136,12 @@
   "csv.date": "Data",
   "csv.dateSource": "Fonte da data",
   "csv.originalFile": "Arquivo original",
-  "report.figureList": "Lista de figuras",
+  "report.figureList": "Lista de figuras e anexos",
   "report.signatureTitle": "Declaração",
   "report.signatureText": "Declaro que as informações e as evidências apresentadas neste relatório são verdadeiras.",
   "report.placeDate": "Local e data",
   "report.signature": "Assinatura",
-  "form.figureList": "Incluir lista de figuras",
+  "form.figureList": "Incluir lista de figuras e anexos",
   "form.signature": "Incluir página de declaração e assinatura",
   "form.signatureText": "Texto da declaração",
   "import.routed_one": "{count} arquivo foi para a atividade do período da data dele.",
@@ -207,5 +207,8 @@
   "preflight.file-date_other": "{count} itens têm a data do arquivo, que pode não ser a do acontecimento.",
   "preflight.empty-activity_one": "{count} atividade sem arquivos fica de fora.",
   "preflight.empty-activity_other": "{count} atividades sem arquivos ficam de fora.",
-  "preflight.clean": "Tudo certo para exportar."
+  "preflight.clean": "Tudo certo para exportar.",
+  "import.doc_unreadable": "{name} não parece ser do tipo que o nome diz. Abra no programa de origem e salve de novo.",
+  "form.notice": "Aviso no alto da capa (opcional). Ex.: \"Conteúdo fictício, só para teste\".",
+  "card.docKind": "Documento"
 }

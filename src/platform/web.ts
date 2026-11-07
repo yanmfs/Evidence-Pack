@@ -1,3 +1,4 @@
+import { docFormat } from "../core/docs";
 import { detectOs, type Os } from "../core/os";
 import type { Project } from "../core/types";
 import type { ImportOutcome, ImportSource, Platform, PreparedRef, StoredDir } from "./types";
@@ -22,11 +23,18 @@ async function sha256(bytes: Uint8Array): Promise<string> {
 
 async function importFile(projectId: string, file: File): Promise<ImportOutcome> {
   const isPdf = file.type === "application/pdf";
-  if (!isPdf && !IMAGE.test(file.type))
+  const isDoc = docFormat(file.name) !== null;
+  if (!isPdf && !isDoc && !IMAGE.test(file.type))
     return { status: "failed", originalName: file.name, code: "unsupported" };
   const bytes = new Uint8Array(await file.arrayBuffer());
   const hash = await sha256(bytes);
-  const ext = isPdf ? "pdf" : file.type === "image/png" ? "png" : "jpg";
+  const ext = isDoc
+    ? (docFormat(file.name) ?? "txt")
+    : isPdf
+      ? "pdf"
+      : file.type === "image/png"
+        ? "png"
+        : "jpg";
   const storedName = `${hash.slice(0, 16)}.${ext}`;
   const duplicate = files.has(key(projectId, "files", storedName));
   files.set(key(projectId, "files", storedName), bytes);
@@ -34,7 +42,7 @@ async function importFile(projectId: string, file: File): Promise<ImportOutcome>
   let width: number | undefined;
   let height: number | undefined;
   let thumbName: string | undefined;
-  if (!isPdf) {
+  if (!isPdf && !isDoc) {
     const bitmap = await createImageBitmap(file);
     width = bitmap.width;
     height = bitmap.height;
@@ -49,7 +57,7 @@ async function importFile(projectId: string, file: File): Promise<ImportOutcome>
       thumbName,
       originalName: file.name,
       sha256: hash,
-      kind: isPdf ? "pdf" : "image",
+      kind: isPdf ? "pdf" : isDoc ? "doc" : "image",
       width,
       height,
       pages: isPdf ? 1 : undefined,
@@ -78,7 +86,7 @@ export const web: Platform = {
       const input = document.createElement("input");
       input.type = "file";
       input.multiple = true;
-      input.accept = "image/*,application/pdf";
+      input.accept = "image/*,application/pdf,.txt,.csv,.docx";
       input.onchange = () => resolve([...(input.files ?? [])].map((file) => ({ file })));
       input.oncancel = () => resolve([]);
       input.click();

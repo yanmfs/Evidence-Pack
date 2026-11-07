@@ -13,6 +13,8 @@ use crate::store::{ensure_dirs, project_dir, projects_root, write_atomic};
 
 const MAX_BYTES: u64 = 120 * 1024 * 1024;
 const THUMB_SIZE: u32 = 320;
+// Text, spreadsheet and Word files: shown in the report as pages of text.
+const DOC_EXTENSIONS: [&str; 3] = ["txt", "csv", "docx"];
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -134,8 +136,12 @@ fn import_one(project: &Path, source: &Path) -> std::result::Result<ImportedFile
         .ok_or("unreadable")?;
     let ext = extension(source);
     let is_pdf = ext == "pdf";
+    let is_doc = DOC_EXTENSIONS.contains(&ext.as_str());
     let is_heic = ext == "heic" || ext == "heif";
-    if !is_pdf && !is_heic && !["png", "jpg", "jpeg", "webp", "gif", "bmp"].contains(&ext.as_str())
+    if !is_pdf
+        && !is_doc
+        && !is_heic
+        && !["png", "jpg", "jpeg", "webp", "gif", "bmp"].contains(&ext.as_str())
     {
         return Err("unsupported");
     }
@@ -152,7 +158,7 @@ fn import_one(project: &Path, source: &Path) -> std::result::Result<ImportedFile
     } else if ext == "jpeg" {
         (original, "jpg".to_string())
     } else {
-        (original, ext)
+        (original, ext.clone())
     };
     let stored_name = format!("{short}.{stored_ext}");
     let target = project.join("files").join(&stored_name);
@@ -162,7 +168,13 @@ fn import_one(project: &Path, source: &Path) -> std::result::Result<ImportedFile
         stored_name: stored_name.clone(),
         original_name,
         sha256,
-        kind: if is_pdf { "pdf" } else { "image" },
+        kind: if is_pdf {
+            "pdf"
+        } else if is_doc {
+            "doc"
+        } else {
+            "image"
+        },
         width: None,
         height: None,
         pages: None,
@@ -172,7 +184,15 @@ fn import_one(project: &Path, source: &Path) -> std::result::Result<ImportedFile
         duplicate,
     };
 
-    if is_pdf {
+    if is_doc {
+        // A .docx is a zip; a renamed file would fail much later, when the report is built.
+        if ext == "docx" && !bytes.starts_with(b"PK") {
+            return Err("doc_unreadable");
+        }
+        if ext != "docx" && bytes.contains(&0) {
+            return Err("doc_unreadable");
+        }
+    } else if is_pdf {
         let doc = lopdf::Document::load_mem(&bytes).map_err(|_| "pdf_unreadable")?;
         if doc.is_encrypted() {
             return Err("pdf_protected");
@@ -250,6 +270,41 @@ mod tests {
     }
 
     #[test]
+    fn imports_text_spreadsheet_and_word_files_as_documents() {
+        let project = scratch("docs");
+        for (name, content) in [
+            ("notas.txt", b"09:00 inicio".to_vec()),
+            ("lista.csv", "a;b\n1;2".as_bytes().to_vec()),
+            ("plano.docx", b"PK\x03\x04rest".to_vec()),
+        ] {
+            let source = project.join(name);
+            fs::write(&source, content).unwrap();
+            let file = import_one(&project, &source).unwrap();
+            assert_eq!(file.kind, "doc");
+            assert_eq!(
+                (file.width, file.pages, file.thumb_name.is_none()),
+                (None, None, true)
+            );
+            assert!(project.join("files").join(&file.stored_name).exists());
+            assert_eq!(file.original_name, name);
+        }
+    }
+
+    #[test]
+    fn refuses_documents_that_are_not_what_their_name_says() {
+        let project = scratch("fake-docs");
+        let fake_docx = project.join("falso.docx");
+        fs::write(&fake_docx, b"plain text, not a zip").unwrap();
+        assert_eq!(
+            import_one(&project, &fake_docx).err(),
+            Some("doc_unreadable")
+        );
+        let binary = project.join("binario.txt");
+        fs::write(&binary, [b'a', 0, b'b']).unwrap();
+        assert_eq!(import_one(&project, &binary).err(), Some("doc_unreadable"));
+    }
+
+    #[test]
     fn imports_an_image_and_detects_the_duplicate() {
         let project = scratch("dup");
         let source = project.join("print.png");
@@ -269,7 +324,7 @@ mod tests {
     #[test]
     fn rejects_other_file_types() {
         let project = scratch("type");
-        let source = project.join("note.txt");
+        let source = project.join("archive.zip");
         fs::write(&source, b"x").unwrap();
         assert_eq!(import_one(&project, &source).err(), Some("unsupported"));
     }

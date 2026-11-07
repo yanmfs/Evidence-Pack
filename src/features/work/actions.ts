@@ -10,6 +10,7 @@ const ERROR_KEYS: Record<string, Key> = {
   unsupported: "import.unsupported",
   pdf_protected: "import.pdf_protected",
   pdf_unreadable: "import.pdf_unreadable",
+  doc_unreadable: "import.doc_unreadable",
   heic_unsupported: "import.heic_unsupported",
   heic_failed: "import.heic_failed",
   too_large: "import.too_large",
