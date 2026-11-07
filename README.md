@@ -90,6 +90,10 @@ pnpm test
 - Mais modelos de capa.
 - Folha de rosto e resumo no modelo ABNT.
 
+## Créditos das imagens de demonstração
+
+O GIF usa um kit de teste fictício (documentos inventados) com quatro imagens públicas: lançamento do Falcon 9 (SpaceX Photos, domínio público), a astronauta Eileen Collins (NASA Great Images), a superfície da Lua (acervo do scikit-image) e o Campo Profundo Extremo do Hubble (NASA / HubbleSite). Nenhuma delas comprova uma atividade real.
+
 ## Contribuir
 
 Veja o [CONTRIBUTING.md](CONTRIBUTING.md).
