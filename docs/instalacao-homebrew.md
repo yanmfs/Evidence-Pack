@@ -27,6 +27,6 @@ A receita instala somente o aplicativo. Não há script de limpeza de preferênc
 
 ## De onde vem o pacote
 
-A receita fica no [tap do Yan Suzano](https://github.com/yanmfs/homebrew-tap/blob/main/Casks/evidencepack.rb), separado do catálogo principal do Homebrew. Ela aponta para uma versão fixa nas [releases deste projeto](https://github.com/yanmfs/Evidence-Pack/releases). O Homebrew confere o checksum antes de instalar.
+A receita fica no [tap do Yan Suzano](https://github.com/yanmfs/homebrew-tap/blob/main/Casks/evidencepack.rb), separado do catálogo principal do Homebrew. Ela aponta para uma versão fixa nas [releases deste projeto](https://github.com/yanmfs/EvidencePack/releases). O Homebrew confere o checksum antes de instalar.
 
 Para manter a receita, publique a nova release e atualize `version`, nome do arquivo e `sha256` no cask. Não troque o arquivo de uma versão já publicada por outro conteúdo.

@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Turn screenshots, photos and receipts into an organized PDF report."
 authors = ["Yan Suzano"]
 license = "MIT"
-repository = "https://github.com/yanmfs/Evidence-Pack"
+repository = "https://github.com/yanmfs/EvidencePack"
 edition = "2021"
 
 [lib]
