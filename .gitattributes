@@ -1,0 +1,17 @@
+# One line ending everywhere. Windows checkouts used to turn the fixtures into CRLF, which broke
+# tests that compare text exactly.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.icns binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.pptx binary
+*.docx binary
+*.zip binary
+*.gz binary
+*.wasm binary
