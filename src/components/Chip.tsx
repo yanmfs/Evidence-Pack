@@ -1,19 +1,16 @@
-import { CircleCheck, Info, TriangleAlert } from "lucide-react";
-
 type Tone = "neutral" | "success" | "warning";
 
-const icons = { neutral: Info, success: CircleCheck, warning: TriangleAlert };
-const colors: Record<Tone, string> = {
-  neutral: "text-muted",
-  success: "text-success",
-  warning: "text-warning",
+const dot: Record<Tone, string> = {
+  neutral: "bg-border-strong",
+  success: "bg-success",
+  warning: "bg-warning",
 };
 
+// A status label: a small colour dot and a sentence, nothing that looks like a button.
 export function Chip({ tone = "neutral", children }: { tone?: Tone; children: string }) {
-  const Icon = icons[tone];
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-xs">
-      <Icon aria-hidden className={`size-3.5 ${colors[tone]}`} />
+    <span className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium">
+      <span aria-hidden className={`size-1.5 rounded-full ${dot[tone]}`} />
       {children}
     </span>
   );

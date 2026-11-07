@@ -14,7 +14,7 @@ export function Toaster() {
         return (
           <div
             key={toast.id}
-            className="anim-slide-up flex max-w-md items-center gap-2 rounded-control bg-text px-3.5 py-2.5 text-sm text-bg shadow-lg"
+            className="anim-slide-up flex max-w-md items-center gap-2 rounded-lg bg-text px-3.5 py-2.5 text-[13px] font-medium text-bg shadow-[0_12px_32px_-12px_rgb(0_0_0/0.5)]"
           >
             <Icon aria-hidden className="size-4 shrink-0" />
             {toast.message}
