@@ -1,6 +1,10 @@
-# EvidencePack
+<p align="center">
+  <img src="docs/banner.en.png" alt="EvidencePack" width="100%">
+</p>
 
-[Português](README.md)
+<p align="center"><a href="README.md">Português</a> · <a href="../../releases">Download</a> · <a href="CONTRIBUTING.md">Contributing</a></p>
+
+<p align="center"><img alt="license MIT" src="https://img.shields.io/badge/license-MIT-2f4bd8?style=flat-square&labelColor=1b1f27"> <img alt="platform Windows | macOS" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-2f4bd8?style=flat-square&labelColor=1b1f27"> <img alt="100% offline" src="https://img.shields.io/badge/100%25-offline-2f4bd8?style=flat-square&labelColor=1b1f27"> <img alt="built with Tauri 2" src="https://img.shields.io/badge/built%20with-Tauri%202-2f4bd8?style=flat-square&labelColor=1b1f27"></p>
 
 Turn screenshots, photos and receipts into an organized PDF report with a cover, contents and numbered figures, and into a ZIP for accountability.
 
@@ -9,6 +13,14 @@ Turn screenshots, photos and receipts into an organized PDF report with a cover,
 | Light                                                                | Dark                                                               |
 | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | ![EvidencePack window, light theme](docs/shots/macos-light-main.png) | ![EvidencePack window, dark theme](docs/shots/macos-dark-main.png) |
+
+## Highlights
+
+- **Start from a template:** internship report, accountability report or portfolio, with sample activities.
+- **Dates on their own:** they come from EXIF or the file name and, with the activity's period, the file goes to the right place.
+- **A check before exporting:** missing captions, undated items, files forgotten in the inbox.
+- **A PDF ready to hand in:** cover, contents, summary table with hours, list of figures, numbered figures, attached PDFs and a signature page, in a Simple or ABNT-inspired layout.
+- **Private:** the location of your photos never reaches the PDF; the ZIP keeps the originals untouched.
 
 ## Why it exists
 
