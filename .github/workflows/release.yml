@@ -38,7 +38,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "EvidencePack ${{ github.ref_name }}"
-          releaseBody: "Veja o que mudou no CHANGELOG.md. Instruções de instalação no README."
+          releaseBody: "Instalador para macOS (.dmg) e Windows (.exe). Instruções de instalação no README."
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}

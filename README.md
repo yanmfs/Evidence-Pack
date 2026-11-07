@@ -2,7 +2,7 @@
   <img src="docs/banner.png" alt="EvidencePack" width="100%">
 </p>
 
-<p align="center"><a href="README.en.md">English</a> · <a href="../../releases">Download</a> · <a href="CONTRIBUTING.md">Contribuir</a></p>
+<p align="center"><a href="README.en.md">English</a> · <a href="../../releases">Download</a></p>
 
 <p align="center"><img alt="licença MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-2f4bd8?style=flat-square&labelColor=1b1f27"> <img alt="sistema Windows | macOS" src="https://img.shields.io/badge/sistema-Windows%20%7C%20macOS-2f4bd8?style=flat-square&labelColor=1b1f27"> <img alt="100% offline" src="https://img.shields.io/badge/100%25-offline-2f4bd8?style=flat-square&labelColor=1b1f27"> <img alt="feito com Tauri 2" src="https://img.shields.io/badge/feito%20com-Tauri%202-2f4bd8?style=flat-square&labelColor=1b1f27"></p>
 
@@ -96,7 +96,7 @@ O GIF usa um kit de teste fictício (documentos inventados) com quatro imagens p
 
 ## Contribuir
 
-Veja o [CONTRIBUTING.md](CONTRIBUTING.md).
+Issues e pull requests são bem-vindos.
 
 ## Licença
 

@@ -2,7 +2,7 @@
   <img src="docs/banner.en.png" alt="EvidencePack" width="100%">
 </p>
 
-<p align="center"><a href="README.md">Português</a> · <a href="../../releases">Download</a> · <a href="CONTRIBUTING.md">Contributing</a></p>
+<p align="center"><a href="README.md">Português</a> · <a href="../../releases">Download</a></p>
 
 <p align="center"><img alt="license MIT" src="https://img.shields.io/badge/license-MIT-2f4bd8?style=flat-square&labelColor=1b1f27"> <img alt="platform Windows | macOS" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-2f4bd8?style=flat-square&labelColor=1b1f27"> <img alt="100% offline" src="https://img.shields.io/badge/100%25-offline-2f4bd8?style=flat-square&labelColor=1b1f27"> <img alt="built with Tauri 2" src="https://img.shields.io/badge/built%20with-Tauri%202-2f4bd8?style=flat-square&labelColor=1b1f27"></p>
 
@@ -96,7 +96,7 @@ The animation uses a made-up test kit (invented documents) with four public imag
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+Issues and pull requests are welcome.
 
 ## License
 
