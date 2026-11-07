@@ -5,9 +5,11 @@ import { Button } from "./components/Button";
 import { Logo } from "./components/Logo";
 import { Toaster } from "./components/Toaster";
 import { Tooltip, TooltipProvider } from "./components/Tooltip";
-import { itemsOf } from "./core/project";
+import { TEMPLATES, type TemplateId } from "./core/templates";
 import { ExportDialog } from "./features/export/ExportDialog";
-import { exportable, exportPdf, exportZip } from "./features/export/exporter";
+import { exportZip } from "./features/export/exporter";
+import { PreflightDialog } from "./features/export/PreflightDialog";
+import { requestPdfExport } from "./features/export/preflight";
 import { ProjectDialog } from "./features/project/ProjectDialog";
 import { ProjectSwitcher } from "./features/project/ProjectSwitcher";
 import { AboutDialog } from "./features/settings/AboutDialog";
@@ -17,7 +19,6 @@ import { Grid } from "./features/work/Grid";
 import { Sidebar } from "./features/work/Sidebar";
 import { useCurrent, useWork } from "./features/work/store";
 import { selectLang, useApp, useT } from "./store";
-import { showToast } from "./toast";
 
 export default function App() {
   const t = useT();
@@ -46,13 +47,7 @@ export default function App() {
 
   if (!ready || !loaded) return null;
 
-  const onExport = () => {
-    if (!project) return;
-    const inbox = itemsOf(project, null).length;
-    if (inbox > 0 && exportable(project).length > 0)
-      showToast(t("export.inboxWarning", { count: inbox }));
-    void exportPdf();
-  };
+  const onExport = () => requestPdfExport();
 
   return (
     <TooltipProvider>
@@ -61,7 +56,9 @@ export default function App() {
           <div className="flex min-w-0 items-center gap-4">
             <div className="flex items-center gap-2.5">
               <Logo />
-              <span className="font-semibold">EvidencePack</span>
+              <span className="font-display text-[17px] font-semibold tracking-tight">
+                EvidencePack
+              </span>
             </div>
             <ProjectSwitcher />
             {project && (
@@ -128,6 +125,7 @@ export default function App() {
       </div>
       <ProjectDialog />
       <ExportDialog />
+      <PreflightDialog />
       <SettingsDialog />
       <AboutDialog />
       <Toaster />
@@ -138,20 +136,35 @@ export default function App() {
 function Welcome() {
   const t = useT();
   const count = useWork((s) => s.projects.length);
+  const create = (template: TemplateId) =>
+    void useWork.getState().createProject(t("projects.defaultName", { n: count + 1 }), template);
   return (
-    <div className="flex flex-1 items-center justify-center p-8">
-      <div className="flex max-w-md flex-col items-center gap-4 text-center">
-        <Logo className="size-14" />
-        <h2 className="text-xl font-semibold">{t("welcome.title")}</h2>
-        <p className="text-sm text-muted">{t("welcome.body")}</p>
-        <Button
-          variant="primary"
-          onClick={() =>
-            void useWork.getState().createProject(t("projects.defaultName", { n: count + 1 }))
-          }
-        >
-          {t("welcome.create")}
-        </Button>
+    <div className="flex flex-1 items-center justify-center overflow-y-auto p-8">
+      <div className="flex w-full max-w-2xl flex-col gap-6">
+        <div className="flex items-center gap-4">
+          <Logo className="size-12 shrink-0" />
+          <div>
+            <h2 className="font-display text-2xl font-semibold tracking-tight">
+              {t("welcome.title")}
+            </h2>
+            <p className="text-sm text-muted">{t("welcome.body")}</p>
+          </div>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {TEMPLATES.map((template) => (
+            <button
+              key={template.id}
+              type="button"
+              onClick={() => create(template.id)}
+              className="rounded-panel border border-border bg-surface p-4 text-left transition-colors hover:border-accent hover:bg-accent-soft"
+            >
+              <span className="block text-sm font-semibold">{t(`tpl.${template.id}`)}</span>
+              <span className="mt-0.5 block text-xs text-muted">
+                {t(`tpl.${template.id}.hint`)}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

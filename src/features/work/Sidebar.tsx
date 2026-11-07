@@ -35,6 +35,7 @@ function ActivityDialog({
         description: draft.description,
         start: draft.start,
         end: draft.end,
+        hours: draft.hours,
       }),
     );
     onClose();
@@ -68,6 +69,20 @@ function ActivityDialog({
             onChange={(end) => setDraft({ ...draft, end: end || undefined })}
           />
         </div>
+        <Field
+          type="number"
+          label={t("activities.hours")}
+          value={draft.hours === undefined ? "" : String(draft.hours)}
+          onChange={(hours) =>
+            setDraft({
+              ...draft,
+              hours:
+                hours === "" || Number.isNaN(Number(hours))
+                  ? undefined
+                  : Math.max(0, Number(hours)),
+            })
+          }
+        />
         <div className="mt-2 flex items-center justify-between">
           <Button
             onClick={() => {

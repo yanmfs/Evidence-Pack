@@ -1,8 +1,10 @@
 import { create } from "zustand";
 import { newProject, parseProject, sortedActivities } from "../../core/project";
+import { applyTemplate, type TemplateId } from "../../core/templates";
 import type { Project } from "../../core/types";
 import { platform } from "../../platform";
-import { useApp } from "../../store";
+import type { Key } from "../../i18n";
+import { tNow, useApp } from "../../store";
 
 type SaveState = "saved" | "saving";
 
@@ -15,7 +17,7 @@ interface WorkState {
   saveState: SaveState;
   loaded: boolean;
   load: () => Promise<void>;
-  createProject: (name: string) => Promise<Project>;
+  createProject: (name: string, template?: TemplateId) => Promise<Project>;
   // Returns false when the person cancels, throws when the file is not a project.
   importProject: () => Promise<boolean>;
   deleteProject: (id: string) => Promise<void>;
@@ -74,14 +76,19 @@ export const useWork = create<WorkState>((set, get) => {
       });
     },
 
-    createProject: async (name) => {
+    createProject: async (name, template = "blank") => {
       const now = new Date().toISOString();
-      const project = newProject(crypto.randomUUID(), now, { title: name });
+      const names = [1, 2, 3, 4].map((n) => tNow(`tpl.${template}.a${n}` as Key));
+      const project = applyTemplate(
+        newProject(crypto.randomUUID(), now, { title: name }),
+        template,
+        names,
+      );
       await platform.writeProject(project);
       set((s) => ({
         projects: [project, ...s.projects],
         currentId: project.id,
-        activityId: null,
+        activityId: sortedActivities(project)[0]?.id ?? null,
         selected: [],
       }));
       useApp.getState().update({ lastProjectId: project.id });

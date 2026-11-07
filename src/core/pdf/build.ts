@@ -1,5 +1,12 @@
 import fontkit from "@pdf-lib/fontkit";
-import { PDFDocument, rgb, type PDFEmbeddedPage, type PDFFont, type PDFPage } from "pdf-lib";
+import {
+  degrees,
+  PDFDocument,
+  rgb,
+  type PDFEmbeddedPage,
+  type PDFFont,
+  type PDFPage,
+} from "pdf-lib";
 import { formatDate } from "../dates";
 import { itemsOf, numberEvidence, sortedActivities } from "../project";
 import type { Evidence, Project } from "../types";
@@ -34,6 +41,12 @@ export interface ReportLabels {
   signatureText: string;
   placeDate: string;
   signature: string;
+  summaryTable: string;
+  colActivity: string;
+  colPeriod: string;
+  colHours: string;
+  colEvidence: string;
+  total: string;
 }
 
 export interface BuildOptions {
@@ -61,8 +74,8 @@ type Op =
       text: string;
     }
   | { t: "rule"; x: number; y: number; w: number }
-  | { t: "hline"; x: number; y: number; w: number }
-  | { t: "image"; id: string; x: number; y: number; w: number; h: number }
+  | { t: "hline"; x: number; y: number; w: number; light?: boolean }
+  | { t: "image"; id: string; x: number; y: number; w: number; h: number; rotation?: number }
   | { t: "embed"; id: string; pageIndex: number; label: string };
 
 interface PlannedPage {
@@ -311,9 +324,12 @@ export async function buildReport(
         needsNewPage = false;
         avail = slotH;
       }
-      const scale = Math.min(contentW / image.width, place(avail) / image.height, 1);
-      const w = image.width * scale;
-      const h = image.height * scale;
+      const turned = item.rotation === 90 || item.rotation === 270;
+      const shownW = turned ? image.height : image.width;
+      const shownH = turned ? image.width : image.height;
+      const scale = Math.min(contentW / shownW, place(avail) / shownH, 1);
+      const w = shownW * scale;
+      const h = shownH * scale;
       const page2 = content[content.length - 1]!;
       figuresOnPage++;
       figurePage.set(item.id, content.length - 1);
@@ -330,6 +346,7 @@ export async function buildReport(
         y: cursor - h,
         w,
         h,
+        rotation: item.rotation,
       });
       cursor -= h + GAP;
       for (const l of source) {
@@ -356,7 +373,12 @@ export async function buildReport(
   const pagesFor = (count: number) => Math.max(1, Math.ceil(count / perListPage));
   const tocPages = pagesFor(activities.length);
   const figurePages = withFigureList ? pagesFor(figures.length) : 0;
-  const firstContentIndex = 1 + tocPages + figurePages;
+
+  const withSummary = Boolean(project.summaryTable) && activities.length > 0;
+  const SUMMARY_ROW = 24;
+  const perSummaryPage = Math.max(1, Math.floor((pageHeight - listTitleH - 20) / SUMMARY_ROW) - 1);
+  const summaryPages = withSummary ? Math.max(1, Math.ceil(activities.length / perSummaryPage)) : 0;
+  const firstContentIndex = 1 + tocPages + summaryPages + figurePages;
   // ABNT counts from the sheet after the cover; the simple template counts the cover too.
   const numberOf = (index: number) => (abnt ? index : index + 1);
 
@@ -418,6 +440,114 @@ export async function buildReport(
         })),
       )
     : [];
+
+  // ---- summary table: activity, period, hours, number of items --------------------------
+  const summary: PlannedPage[] = [];
+  if (withSummary) {
+    const right = A4.w - L.margin.right;
+    const cols = {
+      period: L.margin.left + contentW * 0.4,
+      hours: L.margin.left + contentW * 0.85,
+    };
+    const put = (
+      page: PlannedPage,
+      y: number,
+      cells: { activity: string; period: string; hours: string; count: string },
+      bold?: boolean,
+      size = bodySize,
+      color?: "muted",
+    ) => {
+      let shown = clean(cells.activity);
+      while (shown.length > 1 && width(shown, size, bold) > cols.period - L.margin.left - 12) {
+        shown = shown.slice(0, -1);
+      }
+      if (shown !== clean(cells.activity)) shown = `${shown.trimEnd()}…`;
+      page.ops.push({ t: "text", x: L.margin.left, y, size, bold, color, text: shown });
+      page.ops.push({ t: "text", x: cols.period, y, size, bold, color, text: cells.period });
+      page.ops.push({
+        t: "text",
+        x: cols.hours - width(cells.hours, size, bold),
+        y,
+        size,
+        bold,
+        color,
+        text: cells.hours,
+      });
+      page.ops.push({
+        t: "text",
+        x: right - width(cells.count, size, bold),
+        y,
+        size,
+        bold,
+        color,
+        text: cells.count,
+      });
+    };
+    const hoursText = (h?: number) =>
+      h === undefined ? "" : `${new Intl.NumberFormat(options.locale).format(h)} h`;
+    const rows = activities.map(({ activity, items }) => ({
+      activity: activity.title,
+      period: [activity.start, activity.end]
+        .filter((d): d is string => Boolean(d))
+        .map((d) => formatDate(d, options.locale))
+        .join(" – "),
+      hours: hoursText(activity.hours),
+      count: String(items.length),
+    }));
+    const totalHours = activities.reduce((n, g) => n + (g.activity.hours ?? 0), 0);
+    const anyHours = activities.some((g) => g.activity.hours !== undefined);
+    for (let first = 0; first < rows.length; first += perSummaryPage) {
+      const page: PlannedPage = { ops: [] };
+      const isFirst = first === 0;
+      if (isFirst) {
+        page.ops.push({
+          t: "text",
+          x: L.margin.left,
+          y: topY - 22,
+          size: abnt ? 14 : 22,
+          bold: true,
+          color: "accent",
+          text: upper(options.labels.summaryTable),
+        });
+      }
+      let y = topY - (isFirst ? listTitleH : 24) - 8;
+      put(
+        page,
+        y,
+        {
+          activity: options.labels.colActivity,
+          period: options.labels.colPeriod,
+          hours: options.labels.colHours,
+          count: options.labels.colEvidence,
+        },
+        true,
+        9,
+        "muted",
+      );
+      y -= 8;
+      page.ops.push({ t: "hline", x: L.margin.left, y, w: contentW });
+      for (const row of rows.slice(first, first + perSummaryPage)) {
+        y -= SUMMARY_ROW;
+        put(page, y + 6, row);
+        page.ops.push({ t: "hline", x: L.margin.left, y: y - 4, w: contentW, light: true });
+      }
+      if (first + perSummaryPage >= rows.length) {
+        y -= SUMMARY_ROW;
+        put(
+          page,
+          y + 6,
+          {
+            activity: options.labels.total,
+            period: "",
+            hours: anyHours ? hoursText(totalHours) : "",
+            count: String(total),
+          },
+          true,
+        );
+      }
+      summary.push(page);
+    }
+  }
 
   // ---- declaration and signature page ----------------------------------------
   const closing: PlannedPage[] = [];
@@ -484,7 +614,7 @@ export async function buildReport(
   }
 
   // ---- render --------------------------------------------------------------
-  const all = [cover, ...toc, ...figureList, ...content, ...closing];
+  const all = [cover, ...toc, ...summary, ...figureList, ...content, ...closing];
   const embeddedImages = new Map<string, Awaited<ReturnType<PDFDocument["embedPng"]>>>();
   const embeddedPdfs = new Map<string, PDFEmbeddedPage[]>();
   let done = 0;
@@ -505,7 +635,13 @@ export async function buildReport(
           color: color(op.color),
         });
       } else if (op.t === "hline") {
-        page.drawRectangle({ x: op.x, y: op.y, width: op.w, height: 0.7, color: TEXT });
+        page.drawRectangle({
+          x: op.x,
+          y: op.y,
+          width: op.w,
+          height: op.light ? 0.5 : 0.7,
+          color: op.light ? MUTED : TEXT,
+        });
       } else if (op.t === "rule") {
         page.drawRectangle({ x: op.x, y: op.y, width: op.w, height: 1.5, color: ACCENT });
       } else if (op.t === "image") {
@@ -516,7 +652,26 @@ export async function buildReport(
             src.format === "png" ? await doc.embedPng(src.bytes) : await doc.embedJpg(src.bytes);
           embeddedImages.set(op.id, embedded);
         }
-        page.drawImage(embedded, { x: op.x, y: op.y, width: op.w, height: op.h });
+        const turn = op.rotation ?? 0;
+        // pdf-lib turns an image anticlockwise about its lower left corner, so the corner is placed
+        // where the turned picture will have its own lower left corner.
+        const sideways = turn === 90 || turn === 270;
+        const w0 = sideways ? op.h : op.w;
+        const h0 = sideways ? op.w : op.h;
+        const origin =
+          turn === 90
+            ? { x: op.x, y: op.y + w0 }
+            : turn === 180
+              ? { x: op.x + w0, y: op.y + h0 }
+              : turn === 270
+                ? { x: op.x + h0, y: op.y }
+                : { x: op.x, y: op.y };
+        page.drawImage(embedded, {
+          ...origin,
+          width: w0,
+          height: h0,
+          rotate: degrees(-turn),
+        });
         if (op.id !== LOGO_KEY) options.onProgress?.(++done, total);
         if (done % 3 === 0) await new Promise((r) => setTimeout(r, 0));
       } else {

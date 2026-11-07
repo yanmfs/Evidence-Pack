@@ -7,6 +7,8 @@ export interface Activity {
   description?: string;
   start?: string;
   end?: string;
+  // Time spent, for the summary table of the report.
+  hours?: number;
   order: number;
 }
 
@@ -26,6 +28,8 @@ export interface Evidence {
   width?: number;
   height?: number;
   pages?: number;
+  // Clockwise turn applied to the image in the report; the original file is never changed.
+  rotation?: 0 | 90 | 180 | 270;
   order: number;
 }
 
@@ -45,6 +49,7 @@ export interface Project {
   // Both are optional so projects saved before they existed keep loading.
   logo?: { storedName: string; thumbName?: string; width: number; height: number };
   figureList?: boolean;
+  summaryTable?: boolean;
   signature?: { enabled: boolean; text: string };
   createdAt: string;
   updatedAt: string;
